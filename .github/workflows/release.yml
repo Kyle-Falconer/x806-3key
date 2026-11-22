@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-plz:
+    name: Release PR & Tagging
+    if: startsWith(github.ref, 'refs/heads/main')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux dependencies (hidapi/udev)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libudev-dev pkg-config
+
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-artifacts:
+    name: Build & Upload Release Binaries
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_cli: x806
+            artifact_gui: x806-gui
+            archive_ext: tar.gz
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_cli: x806.exe
+            artifact_gui: x806-gui.exe
+            archive_ext: zip
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact_cli: x806
+            artifact_gui: x806-gui
+            archive_ext: tar.gz
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact_cli: x806
+            artifact_gui: x806-gui
+            archive_ext: tar.gz
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Linux dependencies (hidapi/udev)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libudev-dev pkg-config
+
+      - name: Build release binaries
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Package artifacts (tar.gz)
+        if: matrix.archive_ext == 'tar.gz'
+        shell: bash
+        run: |
+          TAG_NAME="${{ github.ref_name }}"
+          ARCHIVE_NAME="x806-${TAG_NAME}-${{ matrix.target }}.tar.gz"
+          cd "target/${{ matrix.target }}/release"
+          tar -czvf "../../../${ARCHIVE_NAME}" "${{ matrix.artifact_cli }}" "${{ matrix.artifact_gui }}"
+
+      - name: Package artifacts (zip)
+        if: matrix.archive_ext == 'zip'
+        shell: bash
+        run: |
+          TAG_NAME="${{ github.ref_name }}"
+          ARCHIVE_NAME="x806-${TAG_NAME}-${{ matrix.target }}.zip"
+          cd "target/${{ matrix.target }}/release"
+          7z a "../../../${ARCHIVE_NAME}" "${{ matrix.artifact_cli }}" "${{ matrix.artifact_gui }}"
+
+      - name: Upload binaries to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: x806-${{ github.ref_name }}-${{ matrix.target }}.${{ matrix.archive_ext }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

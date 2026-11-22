@@ -1,0 +1,19 @@
+# release-plz ~ configuration file
+# https://release-plz.ieni.dev/docs/config
+
+[workspace]
+# Don't publish to crates.io; keep releases as GitHub releases and git tags
+publish = false
+release_commit_message = "chore(release): v{{ version }}"
+pr_name = "chore(release): v{{ version }}"
+
+[workspace.changelog]
+header = """
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+"""
+path = "CHANGELOG.md"
