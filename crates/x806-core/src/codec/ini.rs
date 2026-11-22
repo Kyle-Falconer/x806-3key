@@ -154,10 +154,10 @@ pub fn parse_config_ini(bytes: &[u8]) -> Result<DeviceConfig, X806Error> {
     }
 
     // Parse per-profile keys for Config0..Config3
-    for p_idx in 0..4 {
+    for (p_idx, profile) in cfg.profiles.iter_mut().enumerate() {
         let sec_name = format!("Config{p_idx}");
         if let Some((_, kvs)) = sections.iter().find(|(s, _)| s == &sec_name) {
-            apply_profile_kvs(&mut cfg.profiles[p_idx], kvs)?;
+            apply_profile_kvs(profile, kvs)?;
         }
     }
 
