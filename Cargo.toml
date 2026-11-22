@@ -2,6 +2,7 @@
 members = [
     "crates/x806-core",
     "crates/x806-cli",
+    "crates/x806-gui",
 ]
 resolver = "3"
 
