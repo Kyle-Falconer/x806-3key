@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/x806-core",
+    "crates/x806-cli",
 ]
 resolver = "3"
 
