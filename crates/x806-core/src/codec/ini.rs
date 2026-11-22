@@ -108,7 +108,13 @@ pub fn parse_config_ini(bytes: &[u8]) -> Result<DeviceConfig, X806Error> {
         for (k, v) in init_kvs {
             match k.as_str() {
                 "VER_SEL" => os.ver_sel = parse_int(k, v)?,
-                "CurConfig" => cfg.active_profile = parse_int::<u8>(k, v)?.min(3),
+                "CurConfig" => {
+                    let raw = parse_int::<u8>(k, v)?;
+                    cfg.active_profile = match raw {
+                        0 | 2 | 3 => raw,
+                        _ => 0,
+                    };
+                }
                 "ConfigName1" | "ConfigName2" | "ConfigName3" | "ConfigName4" => {
                     let idx = (k.as_bytes()[10] - b'1') as usize;
                     if !v.trim().is_empty() {
@@ -263,7 +269,10 @@ pub fn import_x806_bundle(
     let ini_bytes = std::fs::read(config_ini)?;
     let mut cfg = parse_config_ini(&ini_bytes)?;
     let ver_sel = cfg.legacy_os_settings.map(|o| o.ver_sel).unwrap_or(1);
-    let base_dir = config_ini.parent().unwrap_or_else(|| Path::new("."));
+    let base_dir = config_ini
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
 
     // 1. User macro groups (`macroGrp.ini` + `<name>.dat`)
     let resolved_macros_dir: Option<PathBuf> = match macros_dir {
@@ -277,6 +286,7 @@ pub fn import_x806_bundle(
             let group_names = parse_macro_groups(&grp_bytes)?;
             let mut groups = Vec::with_capacity(group_names.len());
             for name in group_names {
+                validate_macro_group_name(&name)?;
                 let macros = if name.trim().is_empty() {
                     Vec::new()
                 } else {
@@ -323,9 +333,15 @@ pub fn export_x806_bundle(
     config_ini: &Path,
     macros_dir: &Path,
 ) -> Result<(), X806Error> {
-    if let Some(parent) = config_ini.parent()
-        && !parent.as_os_str().is_empty()
-    {
+    for group in &cfg.macros.groups {
+        validate_macro_group_name(&group.name)?;
+    }
+
+    let parent = config_ini
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    if parent != Path::new(".") {
         std::fs::create_dir_all(parent)?;
     }
     std::fs::create_dir_all(macros_dir)?;
@@ -342,23 +358,47 @@ pub fn export_x806_bundle(
         }
     }
 
-    if let Some(parent) = config_ini.parent()
-        && !parent.as_os_str().is_empty()
-    {
-        if !cfg.macros.pubg_macros.is_empty() {
-            std::fs::write(
-                parent.join("PUBG_EN.dat"),
-                dat::encode_dat(&cfg.macros.pubg_macros, false),
-            )?;
-        }
-        if !cfg.macros.builtin_shortcuts.is_empty() {
-            std::fs::write(
-                parent.join("constMacro.dat"),
-                dat::encode_dat(&cfg.macros.builtin_shortcuts, false),
-            )?;
-        }
+    if !cfg.macros.pubg_macros.is_empty() {
+        std::fs::write(
+            parent.join("PUBG_EN.dat"),
+            dat::encode_dat(&cfg.macros.pubg_macros, false),
+        )?;
+    }
+    if !cfg.macros.builtin_shortcuts.is_empty() {
+        std::fs::write(
+            parent.join("constMacro.dat"),
+            dat::encode_dat(&cfg.macros.builtin_shortcuts, false),
+        )?;
     }
 
+    Ok(())
+}
+
+fn validate_macro_group_name(name: &str) -> Result<(), X806Error> {
+    let trimmed = name.trim();
+    if trimmed.is_empty() {
+        return Ok(());
+    }
+    if name.contains('/')
+        || name.contains('\\')
+        || name.contains("..")
+        || name.contains('\0')
+        || name.contains(':')
+        || trimmed == "."
+    {
+        return Err(X806Error::IniParse(format!(
+            "invalid macro group name '{name}': path separators and traversal segments are not allowed"
+        )));
+    }
+    let mut comps = Path::new(name).components();
+    if !matches!(
+        (comps.next(), comps.next()),
+        (Some(std::path::Component::Normal(_)), None)
+    ) {
+        return Err(X806Error::IniParse(format!(
+            "invalid macro group name '{name}': must be a single relative filename"
+        )));
+    }
     Ok(())
 }
 
@@ -505,9 +545,9 @@ fn parse_key_action(val: &str) -> Result<KeyAction, X806Error> {
         50..=255 => KeyAction::PubgMacro {
             index: (id - 50) as u8,
         },
-        v if v >= 256 => KeyAction::UserMacro {
-            group: ((v >> 8) - 1) as u8,
-            index: (v & 0xFF) as u8,
+        256..=65535 => KeyAction::UserMacro {
+            group: ((id >> 8) - 1) as u8,
+            index: (id & 0xFF) as u8,
         },
         other => KeyAction::RawLegacy(other),
     };

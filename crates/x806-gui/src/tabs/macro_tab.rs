@@ -13,7 +13,11 @@ use crate::recorder::{DEFAULT_TRAILING_DELAY_MS, MacroRecorder, MAX_RECORDED_EVE
 /// Maximum macro name length in UTF-16 code units matching `.dat` binary records (`60 bytes`).
 pub const MAX_MACRO_NAME_UTF16_UNITS: usize = 30;
 /// Maximum events per macro record in `.dat` files.
-const MAX_MACRO_EVENTS: usize = 180;
+pub const MAX_MACRO_EVENTS: usize = 180;
+/// Maximum number of user macro groups (`group_idx + 1` fits in `u8` for `config.ini` encoding).
+pub const MAX_MACRO_GROUPS: usize = 254;
+/// Maximum number of macros per group (`item_idx` fits in `u8`).
+pub const MAX_MACROS_PER_GROUP: usize = 256;
 
 const QUICK_MODIFIERS: [(&str, u8); 8] = [
     ("LCtrl", 0xE0),
@@ -43,6 +47,131 @@ pub fn clamp_macro_name_utf16(name: &str) -> String {
     out
 }
 
+/// Extracts recordable `(hid, pressed)` transitions from `egui::Event`s, including
+/// `Event::Copy` (`0x06`), `Event::Cut` (`0x1B`), and `Event::Paste(_)` (`0x19`)
+/// emitted by `egui-winit` in place of key-down for `Ctrl+C`/`X`/`V`.
+pub fn extract_recordable_key_events(events: &[egui::Event]) -> Vec<(u8, bool)> {
+    let mut keys = Vec::new();
+    for ev in events {
+        match ev {
+            egui::Event::Key { key, pressed, .. } => {
+                if let Some(hid) = egui_key_to_hid(*key) {
+                    keys.push((hid, *pressed));
+                }
+            }
+            egui::Event::Copy => keys.push((0x06, true)),
+            egui::Event::Cut => keys.push((0x1B, true)),
+            egui::Event::Paste(_) => keys.push((0x19, true)),
+            _ => {}
+        }
+    }
+    keys
+}
+
+/// Appends `captured` events into `target` up to [`MAX_MACRO_EVENTS`], ensuring the appended
+/// slice never leaves unmatched `KeyDown` events stuck down on the host OS.
+///
+/// Returns `Some(warning)` when truncation occurs.
+pub fn append_recorded_events_safely(
+    target: &mut Vec<MacroEvent>,
+    captured: Vec<MacroEvent>,
+) -> Option<String> {
+    let orig_len = captured.len();
+    let remaining = MAX_MACRO_EVENTS.saturating_sub(target.len());
+    if orig_len <= remaining {
+        target.extend(captured);
+        return None;
+    }
+
+    if remaining == 0 {
+        return Some(format!(
+            "Macro already reached the {MAX_MACRO_EVENTS}-event limit; {orig_len} recorded event(s) were not appended."
+        ));
+    }
+
+    let mut kept: Vec<MacroEvent> = Vec::with_capacity(remaining);
+    let mut held: Vec<u8> = Vec::new();
+
+    for ev in captured {
+        match ev.kind {
+            MacroEventKind::KeyDown { hid } => {
+                if held.contains(&hid) {
+                    continue;
+                }
+                // Reserve room for this KeyDown + its eventual KeyUp + all currently held KeyUps.
+                if kept.len() + held.len() + 2 > remaining {
+                    break;
+                }
+                held.push(hid);
+                kept.push(ev);
+            }
+            MacroEventKind::KeyUp { hid } => {
+                if let Some(pos) = held.iter().position(|&h| h == hid) {
+                    held.remove(pos);
+                    kept.push(ev);
+                } else {
+                    if kept.len() + held.len() + 1 > remaining {
+                        break;
+                    }
+                    kept.push(ev);
+                }
+            }
+            _ => {
+                if kept.len() + held.len() + 1 > remaining {
+                    break;
+                }
+                kept.push(ev);
+            }
+        }
+    }
+
+    for hid in held.drain(..).rev() {
+        kept.push(MacroEvent {
+            kind: MacroEventKind::KeyUp { hid },
+            delay_ms: DEFAULT_TRAILING_DELAY_MS,
+        });
+    }
+
+    let kept_len = kept.len();
+    target.extend(kept);
+    Some(format!(
+        "Macro reached the {MAX_MACRO_EVENTS}-event limit: kept {kept_len} of {orig_len} recorded event(s) (held keys closed safely)."
+    ))
+}
+
+/// Validates a macro group name against path-traversal characters and case-insensitive duplicates
+/// so `<group>.dat` exports never collide or escape the macro directory.
+pub fn validate_group_name(
+    name: &str,
+    existing: &[MacroGroup],
+    ignore_idx: Option<usize>,
+) -> Result<(), String> {
+    let trimmed = name.trim();
+    if trimmed.is_empty() {
+        return Ok(());
+    }
+    if name.contains('/')
+        || name.contains('\\')
+        || name.contains("..")
+        || name.contains('\0')
+        || name.contains(':')
+        || trimmed == "."
+    {
+        return Err(format!(
+            "Invalid group name '{name}': path separators and '..' are not allowed."
+        ));
+    }
+    let duplicate = existing.iter().enumerate().any(|(idx, g)| {
+        Some(idx) != ignore_idx && !g.name.trim().is_empty() && g.name.eq_ignore_ascii_case(trimmed)
+    });
+    if duplicate {
+        return Err(format!(
+            "Group name '{trimmed}' already exists (names must be unique for <group>.dat export)."
+        ));
+    }
+    Ok(())
+}
+
 /// Interactive state for the `Macro` tab.
 pub struct MacroTabState {
     pub selected_group: usize,
@@ -57,6 +186,7 @@ pub struct MacroTabState {
     pub insert_delay_ms: u16,
     pub insert_tap_mode: bool,
     pub repeat_count_buf: u16,
+    pub pending_warning: Option<String>,
 }
 
 impl MacroTabState {
@@ -66,6 +196,11 @@ impl MacroTabState {
             let _ = self.recorder.stop();
         }
         self.record_started_at = None;
+    }
+
+    /// Takes any pending warning message raised by macro tab actions (truncation, caps, duplicates).
+    pub fn take_warning(&mut self) -> Option<String> {
+        self.pending_warning.take()
     }
 
     /// Clamps group/macro selection indices to `cfg` and auto-cancels any active recording
@@ -98,6 +233,7 @@ impl Default for MacroTabState {
             insert_delay_ms: 50,
             insert_tap_mode: true,
             repeat_count_buf: 2,
+            pending_warning: None,
         }
     }
 }
@@ -124,14 +260,7 @@ pub fn ui(
             .map_or(0, |t| t.elapsed().as_millis() as u64);
         let (mod_state, key_events) = ctx.input(|input| {
             let mods = ModState::from_egui(input.modifiers);
-            let mut keys = Vec::new();
-            for ev in &input.events {
-                if let egui::Event::Key { key, pressed, .. } = *ev
-                    && let Some(hid) = egui_key_to_hid(key)
-                {
-                    keys.push((hid, pressed));
-                }
-            }
+            let keys = extract_recordable_key_events(&input.events);
             (mods, keys)
         });
 
@@ -203,19 +332,32 @@ fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macro
             let add_clicked = ui.button("+ Group").clicked()
                 || (resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)));
             if add_clicked {
-                let trimmed = state.new_group_name.trim();
-                let name = if trimmed.is_empty() {
-                    format!("Group{}", cfg.macros.groups.len() + 1)
+                if cfg.macros.groups.len() >= MAX_MACRO_GROUPS {
+                    state.pending_warning = Some(format!(
+                        "Cannot add more than {MAX_MACRO_GROUPS} macro groups (config.ini 8-bit group limit)."
+                    ));
                 } else {
-                    clamp_macro_name_utf16(trimmed)
-                };
-                cfg.macros.groups.push(MacroGroup {
-                    name,
-                    macros: Vec::new(),
-                });
-                state.selected_group = cfg.macros.groups.len() - 1;
-                state.selected_macro = 0;
-                state.new_group_name.clear();
+                    let trimmed = state.new_group_name.trim();
+                    let name = if trimmed.is_empty() {
+                        next_unique_group_name(&cfg.macros.groups)
+                    } else {
+                        clamp_macro_name_utf16(trimmed)
+                    };
+                    match validate_group_name(&name, &cfg.macros.groups, None) {
+                        Ok(()) => {
+                            cfg.macros.groups.push(MacroGroup {
+                                name,
+                                macros: Vec::new(),
+                            });
+                            state.selected_group = cfg.macros.groups.len() - 1;
+                            state.selected_macro = 0;
+                            state.new_group_name.clear();
+                        }
+                        Err(msg) => {
+                            state.pending_warning = Some(msg);
+                        }
+                    }
+                }
             }
         });
 
@@ -243,14 +385,25 @@ fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macro
 
         if !cfg.macros.groups.is_empty() {
             ui.horizontal(|ui| {
-                let grp_name = &mut cfg.macros.groups[state.selected_group].name;
                 ui.label("Rename:");
-                let mut edited = grp_name.clone();
+                let mut edited = cfg.macros.groups[state.selected_group].name.clone();
                 if ui
                     .add(egui::TextEdit::singleline(&mut edited).desired_width(110.0))
                     .changed()
                 {
-                    *grp_name = clamp_macro_name_utf16(&edited);
+                    let candidate = clamp_macro_name_utf16(&edited);
+                    match validate_group_name(
+                        &candidate,
+                        &cfg.macros.groups,
+                        Some(state.selected_group),
+                    ) {
+                        Ok(()) => {
+                            cfg.macros.groups[state.selected_group].name = candidate;
+                        }
+                        Err(msg) => {
+                            state.pending_warning = Some(msg);
+                        }
+                    }
                 }
                 if ui
                     .button("Del")
@@ -259,7 +412,9 @@ fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macro
                 {
                     let removed = state.selected_group;
                     cfg.macros.groups.remove(removed);
-                    adjust_bindings_after_group_delete(cfg, removed as u8);
+                    if let Ok(removed_u8) = u8::try_from(removed) {
+                        adjust_bindings_after_group_delete(cfg, removed_u8);
+                    }
                     clamp_selections(cfg, state);
                 }
             });
@@ -279,23 +434,29 @@ fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macro
                     || (resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)));
                 if add_clicked {
                     let grp = &mut cfg.macros.groups[state.selected_group];
-                    let trimmed = state.new_macro_name.trim();
-                    let name = if trimmed.is_empty() {
-                        format!("Macro{}", grp.macros.len() + 1)
+                    if grp.macros.len() >= MAX_MACROS_PER_GROUP {
+                        state.pending_warning = Some(format!(
+                            "Cannot add more than {MAX_MACROS_PER_GROUP} macros in one group (8-bit index limit)."
+                        ));
                     } else {
-                        clamp_macro_name_utf16(trimmed)
-                    };
-                    grp.macros.push(Macro {
-                        name,
-                        repeat_mode: RepeatMode::Once,
-                        finish_cycle: false,
-                        opt_flag: 0,
-                        opt_val: 10,
-                        events: Vec::new(),
-                        led_blocks: Vec::new(),
-                    });
-                    state.selected_macro = grp.macros.len() - 1;
-                    state.new_macro_name.clear();
+                        let trimmed = state.new_macro_name.trim();
+                        let name = if trimmed.is_empty() {
+                            format!("Macro{}", grp.macros.len() + 1)
+                        } else {
+                            clamp_macro_name_utf16(trimmed)
+                        };
+                        grp.macros.push(Macro {
+                            name,
+                            repeat_mode: RepeatMode::Once,
+                            finish_cycle: false,
+                            opt_flag: 0,
+                            opt_val: 10,
+                            events: Vec::new(),
+                            led_blocks: Vec::new(),
+                        });
+                        state.selected_macro = grp.macros.len() - 1;
+                        state.new_macro_name.clear();
+                    }
                 }
             });
 
@@ -364,8 +525,11 @@ fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macro
                     state.record_started_at = None;
                     let target = &mut cfg.macros.groups[state.selected_group].macros
                         [state.selected_macro];
-                    let remaining = MAX_MACRO_EVENTS.saturating_sub(target.events.len());
-                    target.events.extend(captured.into_iter().take(remaining));
+                    if let Some(warning) =
+                        append_recorded_events_safely(&mut target.events, captured)
+                    {
+                        state.pending_warning = Some(warning);
+                    }
                 }
             } else {
                 let rec_btn = egui::Button::new(
@@ -381,12 +545,12 @@ fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macro
                     .on_hover_text("Delete selected macro")
                     .clicked()
                 {
-                    let g = state.selected_group as u8;
-                    let m = state.selected_macro as u8;
-                    cfg.macros.groups[state.selected_group]
-                        .macros
-                        .remove(state.selected_macro);
-                    adjust_bindings_after_macro_delete(cfg, g, m);
+                    let g = state.selected_group;
+                    let m = state.selected_macro;
+                    cfg.macros.groups[g].macros.remove(m);
+                    if let (Ok(g_u8), Ok(m_u8)) = (u8::try_from(g), u8::try_from(m)) {
+                        adjust_bindings_after_macro_delete(cfg, g_u8, m_u8);
+                    }
                     clamp_selections(cfg, state);
                 }
             }
@@ -780,6 +944,20 @@ fn describe_event_kind(kind: &MacroEventKind) -> String {
         MacroEventKind::Raw {
             event_type, hid, ..
         } => format!("Raw({event_type}, 0x{hid:02X})"),
+    }
+}
+
+fn next_unique_group_name(existing: &[MacroGroup]) -> String {
+    let mut n = existing.len() + 1;
+    loop {
+        let candidate = format!("Group{n}");
+        if !existing
+            .iter()
+            .any(|g| g.name.eq_ignore_ascii_case(&candidate))
+        {
+            return candidate;
+        }
+        n += 1;
     }
 }
 

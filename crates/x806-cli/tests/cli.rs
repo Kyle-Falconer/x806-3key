@@ -70,6 +70,10 @@ fn cli_reset_dry_run_compiles_plan() {
         stdout.contains("macro bytes") || stdout.contains("Macro bytes"),
         "expected macro bytes used in stdout:\n{stdout}"
     );
+    assert!(
+        stdout.contains("0x0FF8") && stdout.contains("0x07F8"),
+        "expected 4 KB / 2 KB EEPROM limit note in dry-run stdout:\n{stdout}"
+    );
 }
 
 #[test]
@@ -211,4 +215,63 @@ fn cli_import_export_and_apply_dry_run_roundtrip() {
         inspect_stdout.contains("LCONTROL"),
         "expected 'LCONTROL' in inspect output:\n{inspect_stdout}"
     );
+}
+
+#[test]
+fn cli_export_bare_relative_path_writes_sidecars_and_default_macros_dir() {
+    let tmp = TempDir::new("x806_cli_bare_export");
+    let mut cfg = x806_core::defaults::factory_default_config();
+    cfg.macros.groups.push(x806_core::model::MacroGroup {
+        name: "Streaming".to_string(),
+        macros: vec![Macro {
+            name: "ZoomIt".to_string(),
+            repeat_mode: RepeatMode::Once,
+            finish_cycle: false,
+            opt_flag: 0,
+            opt_val: 10,
+            events: vec![MacroEvent {
+                kind: MacroEventKind::KeyDown { hid: 0x04 },
+                delay_ms: 10,
+            }],
+            led_blocks: Vec::new(),
+        }],
+    });
+    cfg.macros.pubg_macros.push(Macro {
+        name: "AKM".to_string(),
+        repeat_mode: RepeatMode::UntilClick,
+        finish_cycle: false,
+        opt_flag: 1,
+        opt_val: 2,
+        events: Vec::new(),
+        led_blocks: Vec::new(),
+    });
+
+    let toml_path = tmp.path.join("input.toml");
+    std::fs::write(
+        &toml_path,
+        x806_core::codec::toml::to_toml_string(&cfg).expect("encode toml"),
+    )
+    .expect("write toml");
+
+    let export_dir = tmp.path.join("cwd_export");
+    std::fs::create_dir_all(&export_dir).expect("create export_dir");
+
+    let out = x806_cmd()
+        .current_dir(&export_dir)
+        .arg("export")
+        .arg(&toml_path)
+        .args(["--out", "config.ini"])
+        .output()
+        .expect("run x806 export with bare relative --out");
+    assert!(
+        out.status.success(),
+        "x806 export failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+
+    assert!(export_dir.join("config.ini").exists());
+    assert!(export_dir.join("PUBG_EN.dat").exists());
+    assert!(export_dir.join("constMacro.dat").exists());
+    assert!(export_dir.join("macro").join("macroGrp.ini").exists());
+    assert!(export_dir.join("macro").join("Streaming.dat").exists());
 }

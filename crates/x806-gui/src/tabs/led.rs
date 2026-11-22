@@ -1,7 +1,7 @@
 use egui::{Color32, RichText};
 use x806_core::model::{DeviceConfig, LedMode, ReactiveStyle, Rgb4};
 
-use crate::tabs::{led_mode_label, reactive_style_label};
+use crate::tabs::{active_profile_index, led_mode_label, reactive_style_label};
 
 const STANDARD_LED_MODES: [LedMode; 3] = [
     LedMode::CycleBreath,
@@ -27,12 +27,7 @@ const REACTIVE_STYLES: [ReactiveStyle; 4] = [
 /// Renders the `LED Setting` tab: LED modes, active-low 4-bit RGB cycle colors, per-key reactive
 /// configuration, cycle speed (`0..=6`), and collapsible advanced firmware modes & brightness.
 pub fn ui(ui: &mut egui::Ui, cfg: &mut DeviceConfig) {
-    let profile_idx = usize::from(cfg.active_profile.min(3));
-
-    // Keep speed strictly clamped to 0..=6 (7 is firmware-reserved for Mute in EEPROM 0x001C).
-    if cfg.led.speed > 6 {
-        cfg.led.speed = 6;
-    }
+    let profile_idx = active_profile_index(cfg.active_profile);
 
     egui::ScrollArea::vertical()
         .id_salt("led_tab_scroll")

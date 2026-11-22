@@ -194,6 +194,9 @@ fn execute_plan_or_flash(
     if dry_run {
         let plan = compile_plan(cfg, CompileContext::default())?;
         print_plan_summary("Dry-run", label, cfg, &plan);
+        println!(
+            "Note: offline dry-run assumes the 4 KB EEPROM limit (0x0FF8 / 3064 usable bytes); 2 KB devices cap at 0x07F8 (1016 bytes)."
+        );
         return Ok(());
     }
 

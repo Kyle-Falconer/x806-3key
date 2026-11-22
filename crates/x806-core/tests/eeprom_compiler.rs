@@ -646,3 +646,58 @@ fn raw_xy_quadrants_and_builtin_shortcut_pubg_compilation() {
     assert_eq!(d_p0[6] & 0x3F, d_p2[6] & 0x3F);
     assert_eq!(u16::from(d_p0[5]) | (u16::from(d_p0[6] & 0x3F) << 8), 0x0400);
 }
+
+#[test]
+fn rejects_dead_profile_slot_1_and_out_of_range_active_profile() {
+    for bad_profile in [1u8, 4u8, 255u8] {
+        let mut cfg = factory_default_config();
+        cfg.active_profile = bad_profile;
+        let err = compile_plan(&cfg, CompileContext::default())
+            .expect_err("must reject invalid or dead active_profile");
+        assert!(
+            matches!(err, X806Error::SafetyViolation(_)),
+            "expected SafetyViolation for active_profile={bad_profile}, got {err:?}"
+        );
+    }
+}
+
+#[test]
+fn rejects_duplicate_keymap_hardware_slots() {
+    let mut cfg = factory_default_config();
+    cfg.keymap[1] = cfg.keymap[0]; // duplicate slot 7
+    let err = compile_plan(&cfg, CompileContext::default())
+        .expect_err("must reject duplicate keymap hw_slot");
+    assert!(
+        matches!(err, X806Error::SafetyViolation(_)),
+        "expected SafetyViolation for duplicate hw_slot, got {err:?}"
+    );
+}
+
+#[test]
+fn rejects_led_anim_data_addr_exceeding_14bit_limit() {
+    let mut led_block = vec![0u8; 68];
+    led_block[0] = 1;
+    let mac = Macro {
+        name: "LedHighAddr".into(),
+        repeat_mode: RepeatMode::Once,
+        finish_cycle: false,
+        opt_flag: 0,
+        opt_val: 10,
+        events: vec![MacroEvent {
+            kind: MacroEventKind::LedAnim {
+                channel: 0,
+                index: 0,
+            },
+            delay_ms: 5,
+        }],
+        led_blocks: vec![led_block],
+    };
+
+    // Base 0x3FF8 + padded event stream (8 bytes) = 0x4000 > 0x3FFF
+    let err = compile_macro_bytecode(&mac, 1, 0x3FF8)
+        .expect_err("must reject LedAnim data_addr > 0x3FFF");
+    assert!(
+        matches!(err, X806Error::SafetyViolation(_)),
+        "expected SafetyViolation for LedAnim addr > 0x3FFF, got {err:?}"
+    );
+}

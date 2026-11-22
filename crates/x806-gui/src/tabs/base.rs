@@ -3,7 +3,7 @@ use x806_core::keycode::hid_display_name;
 use x806_core::model::{BuiltinShortcut, DeviceConfig, KeyAction, MediaKey};
 
 use crate::keymap::egui_key_to_hid;
-use crate::tabs::{key_action_label, media_key_label, shortcut_label};
+use crate::tabs::{active_profile_index, key_action_label, media_key_label, shortcut_label};
 
 /// Interactive state for the `Base Setting` tab.
 #[derive(Debug, Default)]
@@ -90,7 +90,7 @@ pub fn ui(
     cfg: &mut DeviceConfig,
     state: &mut BaseTabState,
 ) {
-    let profile_idx = usize::from(cfg.active_profile.min(3));
+    let profile_idx = active_profile_index(cfg.active_profile);
     if state.selected_key >= 8 {
         state.selected_key = 0;
     }
@@ -326,9 +326,14 @@ fn render_action_picker(
                             } else {
                                 ui.horizontal_wrapped(|ui| {
                                     for (m_idx, mac) in group.macros.iter().enumerate() {
+                                        let (Ok(group_u8), Ok(index_u8)) =
+                                            (u8::try_from(g_idx), u8::try_from(m_idx))
+                                        else {
+                                            continue;
+                                        };
                                         let action = KeyAction::UserMacro {
-                                            group: g_idx as u8,
-                                            index: m_idx as u8,
+                                            group: group_u8,
+                                            index: index_u8,
                                         };
                                         let name = if mac.name.is_empty() {
                                             format!("Macro {}", m_idx + 1)

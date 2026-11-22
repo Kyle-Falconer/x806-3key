@@ -1,12 +1,16 @@
 use std::fs;
 
 use x806_core::defaults;
-use x806_core::model::{KeyAction, MacroEventKind};
-use x806_gui::app::validate_and_save_offline;
+use x806_core::model::{KeyAction, MacroEvent, MacroEventKind, MacroGroup};
+use x806_gui::app::{normalize_config, validate_and_save_offline};
 use x806_gui::keymap::egui_key_to_hid;
 use x806_gui::recorder::{MacroRecorder, ModState, RecordOutcome};
+use x806_gui::tabs::active_profile_index;
 use x806_gui::tabs::base::BaseTabState;
-use x806_gui::tabs::macro_tab::{MacroTabState, clamp_macro_name_utf16};
+use x806_gui::tabs::macro_tab::{
+    MAX_MACRO_EVENTS, MacroTabState, append_recorded_events_safely, clamp_macro_name_utf16,
+    extract_recordable_key_events, validate_group_name,
+};
 
 #[test]
 fn recorder_deduplicates_held_repeat_and_tracks_delays() {
@@ -108,6 +112,9 @@ fn egui_key_mapping_covers_letters_digits_fkeys_and_arrows() {
     assert_eq!(egui_key_to_hid(egui::Key::ArrowDown), Some(0x51));
     assert_eq!(egui_key_to_hid(egui::Key::ArrowLeft), Some(0x50));
     assert_eq!(egui_key_to_hid(egui::Key::ArrowRight), Some(0x4F));
+    assert_eq!(egui_key_to_hid(egui::Key::OpenCurlyBracket), Some(0x2F));
+    assert_eq!(egui_key_to_hid(egui::Key::CloseCurlyBracket), Some(0x30));
+    assert_eq!(egui_key_to_hid(egui::Key::Exclamationmark), Some(0x1E));
 }
 
 #[test]
@@ -189,4 +196,155 @@ fn offline_apply_validates_before_writing_and_handles_missing_config_path() {
     assert!(cfg_path.exists());
 
     let _ = fs::remove_dir_all(&tmp_dir);
+}
+
+#[test]
+fn extract_recordable_events_handles_copy_cut_paste() {
+    let events = vec![
+        egui::Event::Copy,
+        egui::Event::Cut,
+        egui::Event::Paste("hello".to_string()),
+        egui::Event::Key {
+            key: egui::Key::C,
+            physical_key: None,
+            pressed: false,
+            repeat: false,
+            modifiers: egui::Modifiers::NONE,
+        },
+    ];
+    let extracted = extract_recordable_key_events(&events);
+    assert_eq!(
+        extracted,
+        vec![(0x06, true), (0x1B, true), (0x19, true), (0x06, false)]
+    );
+}
+
+#[test]
+fn recorder_stop_auto_releases_held_keys_and_reserves_headroom() {
+    let mut rec = MacroRecorder::new();
+    rec.start(0);
+
+    // Hold Ctrl then C, then stop without releasing -> must auto-release C then Ctrl (LIFO).
+    assert_eq!(rec.on_key_event(0xE0, true, 10), RecordOutcome::Recorded);
+    assert_eq!(rec.on_key_event(0x06, true, 20), RecordOutcome::Recorded);
+    let stopped = rec.stop();
+    assert_eq!(
+        stopped.iter().map(|e| e.kind.clone()).collect::<Vec<_>>(),
+        vec![
+            MacroEventKind::KeyDown { hid: 0xE0 },
+            MacroEventKind::KeyDown { hid: 0x06 },
+            MacroEventKind::KeyUp { hid: 0x06 },
+            MacroEventKind::KeyUp { hid: 0xE0 },
+        ]
+    );
+
+    // Record 54 complete pairs (108 events), hold Ctrl (109th), then next KeyDown must be
+    // rejected so Ctrl's KeyUp still fits inside the 110-event cap.
+    rec.start(0);
+    let mut t = 10u64;
+    for _ in 0..54 {
+        assert_eq!(rec.on_key_event(0x04, true, t), RecordOutcome::Recorded);
+        t += 5;
+        assert_eq!(rec.on_key_event(0x04, false, t), RecordOutcome::Recorded);
+        t += 5;
+    }
+    assert_eq!(rec.on_key_event(0xE0, true, t), RecordOutcome::Recorded);
+    t += 5;
+    assert_eq!(rec.on_key_event(0x06, true, t), RecordOutcome::LimitReached);
+    let events = rec.stop();
+    assert_eq!(events.len(), 110);
+    assert_eq!(events.last().unwrap().kind, MacroEventKind::KeyUp { hid: 0xE0 });
+}
+
+#[test]
+fn append_recorded_events_safely_truncates_without_stuck_keys() {
+    // 1. Target has 176 events (4 slots remaining), captured has 6 events:
+    //    Down(Ctrl), Down(A), Down(B), Up(B), Up(A), Up(Ctrl)
+    //    Safe truncation must keep Down(Ctrl), Down(A) and close Up(A), Up(Ctrl) = 4 events.
+    let mut target: Vec<MacroEvent> = (0..176)
+        .map(|_| MacroEvent {
+            kind: MacroEventKind::Delay,
+            delay_ms: 10,
+        })
+        .collect();
+    let captured = vec![
+        MacroEvent { kind: MacroEventKind::KeyDown { hid: 0xE0 }, delay_ms: 10 },
+        MacroEvent { kind: MacroEventKind::KeyDown { hid: 0x04 }, delay_ms: 10 },
+        MacroEvent { kind: MacroEventKind::KeyDown { hid: 0x05 }, delay_ms: 10 },
+        MacroEvent { kind: MacroEventKind::KeyUp { hid: 0x05 }, delay_ms: 10 },
+        MacroEvent { kind: MacroEventKind::KeyUp { hid: 0x04 }, delay_ms: 10 },
+        MacroEvent { kind: MacroEventKind::KeyUp { hid: 0xE0 }, delay_ms: 10 },
+    ];
+
+    let warn = append_recorded_events_safely(&mut target, captured)
+        .expect("truncation must return a warning");
+    assert!(warn.contains("180"));
+    assert_eq!(target.len(), MAX_MACRO_EVENTS);
+    assert_eq!(
+        target[176..]
+            .iter()
+            .map(|e| e.kind.clone())
+            .collect::<Vec<_>>(),
+        vec![
+            MacroEventKind::KeyDown { hid: 0xE0 },
+            MacroEventKind::KeyDown { hid: 0x04 },
+            MacroEventKind::KeyUp { hid: 0x04 },
+            MacroEventKind::KeyUp { hid: 0xE0 },
+        ]
+    );
+
+    // 2. Only 1 slot remaining -> cannot fit a KeyDown+KeyUp pair, so must not push a lone KeyDown.
+    let mut almost_full: Vec<MacroEvent> = (0..179)
+        .map(|_| MacroEvent {
+            kind: MacroEventKind::Delay,
+            delay_ms: 10,
+        })
+        .collect();
+    let single_pair = vec![
+        MacroEvent { kind: MacroEventKind::KeyDown { hid: 0x04 }, delay_ms: 10 },
+        MacroEvent { kind: MacroEventKind::KeyUp { hid: 0x04 }, delay_ms: 10 },
+    ];
+    let warn2 = append_recorded_events_safely(&mut almost_full, single_pair)
+        .expect("must warn when pair does not fit in 1 remaining slot");
+    assert!(warn2.contains("kept 0 of 2"));
+    assert_eq!(almost_full.len(), 179);
+}
+
+#[test]
+fn normalize_config_and_active_profile_index_guard_dead_slot_1() {
+    let mut cfg = defaults::factory_default_config();
+    cfg.active_profile = 1;
+    cfg.fire_time_ms = 10;
+    cfg.led.speed = 9;
+
+    normalize_config(&mut cfg);
+    assert_eq!(cfg.active_profile, 0);
+    assert_eq!(cfg.fire_time_ms, 50);
+    assert_eq!(cfg.led.speed, 6);
+
+    cfg.fire_time_ms = 999;
+    cfg.active_profile = 4;
+    normalize_config(&mut cfg);
+    assert_eq!(cfg.active_profile, 0);
+    assert_eq!(cfg.fire_time_ms, 300);
+
+    assert_eq!(active_profile_index(0), 0);
+    assert_eq!(active_profile_index(1), 0);
+    assert_eq!(active_profile_index(2), 2);
+    assert_eq!(active_profile_index(3), 3);
+    assert_eq!(active_profile_index(7), 0);
+}
+
+#[test]
+fn validate_group_name_rejects_duplicates_and_path_traversal() {
+    let existing = vec![MacroGroup {
+        name: "Streaming".to_string(),
+        macros: Vec::new(),
+    }];
+
+    assert!(validate_group_name("Gaming", &existing, None).is_ok());
+    assert!(validate_group_name("streaming", &existing, None).is_err());
+    assert!(validate_group_name("Streaming", &existing, Some(0)).is_ok());
+    assert!(validate_group_name("../evil", &existing, None).is_err());
+    assert!(validate_group_name(r"a\b", &existing, None).is_err());
 }

@@ -71,15 +71,11 @@ pub fn ui(ui: &mut egui::Ui, cfg: &mut DeviceConfig) {
             );
             ui.add_space(8.0);
 
-            let mut fire_ms = cfg.fire_time_ms.clamp(50, 300);
-            let resp = ui.add(
-                egui::Slider::new(&mut fire_ms, 50..=300)
+            ui.add(
+                egui::Slider::new(&mut cfg.fire_time_ms, 50..=300)
                     .text("ms")
                     .step_by(1.0),
             );
-            if resp.changed() || cfg.fire_time_ms != fire_ms {
-                cfg.fire_time_ms = fire_ms;
-            }
             ui.label(
                 RichText::new(format!(
                     "EEPROM value: {} (fire_time_ms / 8)",

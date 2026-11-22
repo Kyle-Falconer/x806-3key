@@ -19,6 +19,7 @@ const ACTIVE_PROFILE_SLOTS: [(u8, &str); 3] = [(0, "Game I"), (2, "Game II"), (3
 enum ToastKind {
     Success,
     Info,
+    Warning,
     Error,
 }
 
@@ -50,7 +51,7 @@ impl X806App {
             .map(|proj| proj.config_dir().join("config.toml"));
 
         let mut startup_toast = None;
-        let config = match config_path.as_ref().filter(|p| p.exists()) {
+        let mut config = match config_path.as_ref().filter(|p| p.exists()) {
             Some(path) => match load_toml_file(path) {
                 Ok(cfg) => cfg,
                 Err(err) => {
@@ -66,6 +67,7 @@ impl X806App {
             },
             None => defaults::factory_default_config(),
         };
+        normalize_config(&mut config);
 
         let mut app = Self {
             saved_config: config.clone(),
@@ -138,8 +140,10 @@ impl X806App {
         };
 
         match result {
-            Ok(imported) => {
+            Ok(mut imported) => {
                 self.macro_state.cancel_recording();
+                self.base_state.close_record_modal();
+                normalize_config(&mut imported);
                 let grp_count = imported.macros.groups.len();
                 self.config = imported;
                 self.set_toast(
@@ -199,6 +203,7 @@ impl X806App {
 
     fn handle_reset(&mut self) {
         self.macro_state.cancel_recording();
+        self.base_state.close_record_modal();
         self.config = defaults::factory_default_config();
         self.set_toast(
             ToastKind::Info,
@@ -208,12 +213,14 @@ impl X806App {
 
     fn handle_cancel(&mut self) {
         self.macro_state.cancel_recording();
+        self.base_state.close_record_modal();
         self.config = self.saved_config.clone();
         self.set_toast(ToastKind::Info, "Reverted unsaved edits.");
     }
 
     fn handle_apply(&mut self) {
         self.macro_state.cancel_recording();
+        self.base_state.close_record_modal();
 
         // 1. Validate & flash connected hardware first (never persist invalid/rejected configs).
         match HidApiTransport::open_first() {
@@ -388,6 +395,10 @@ impl X806App {
                 Color32::from_rgb(32, 52, 78),
                 Color32::from_rgb(185, 220, 255),
             ),
+            ToastKind::Warning => (
+                Color32::from_rgb(78, 56, 22),
+                Color32::from_rgb(255, 224, 150),
+            ),
             ToastKind::Error => (
                 Color32::from_rgb(82, 28, 32),
                 Color32::from_rgb(255, 190, 190),
@@ -478,11 +489,26 @@ impl eframe::App for X806App {
 
         egui::CentralPanel::default().show(ctx, |ui| match self.active_tab {
             ActiveTab::Base => base::ui(ctx, ui, &mut self.config, &mut self.base_state),
-            ActiveTab::Macro => macro_tab::ui(ctx, ui, &mut self.config, &mut self.macro_state),
+            ActiveTab::Macro => {
+                macro_tab::ui(ctx, ui, &mut self.config, &mut self.macro_state);
+                if let Some(warning) = self.macro_state.take_warning() {
+                    self.set_toast(ToastKind::Warning, warning);
+                }
+            }
             ActiveTab::Advanced => advanced::ui(ui, &mut self.config),
             ActiveTab::Led => led::ui(ui, &mut self.config),
         });
     }
+}
+
+/// Normalizes a loaded or imported [`DeviceConfig`] into valid hardware/UI bounds so rendering
+/// tabs never mutates an untouched config and dead EEPROM profile slot `1` is never selected.
+pub fn normalize_config(cfg: &mut DeviceConfig) {
+    if !matches!(cfg.active_profile, 0 | 2 | 3) {
+        cfg.active_profile = 0;
+    }
+    cfg.fire_time_ms = cfg.fire_time_ms.clamp(50, 300);
+    cfg.led.speed = cfg.led.speed.min(6);
 }
 
 /// Validates `cfg` against the default EEPROM layout before persisting TOML to `config_path`.

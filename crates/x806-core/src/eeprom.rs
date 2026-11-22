@@ -85,6 +85,28 @@ enum MacroDedupKey {
 
 /// Compiles a `DeviceConfig` and hardware `CompileContext` into a deterministic, safety-checked `EepromPlan`.
 pub fn compile_plan(cfg: &DeviceConfig, ctx: CompileContext) -> Result<EepromPlan, X806Error> {
+    if !ACTIVE_PROFILES.contains(&usize::from(cfg.active_profile)) {
+        return Err(X806Error::SafetyViolation(format!(
+            "invalid active_profile {} (must be 0, 2, or 3; slot 1 is unused in EEPROM)",
+            cfg.active_profile
+        )));
+    }
+
+    let mut seen_slots = [false; 12];
+    for (ui_btn, &hw_slot) in cfg.keymap.iter().enumerate() {
+        if !(1..=11).contains(&hw_slot) {
+            return Err(X806Error::SafetyViolation(format!(
+                "invalid keymap hardware slot {hw_slot} for button {ui_btn} (must be 1..=11)"
+            )));
+        }
+        if seen_slots[usize::from(hw_slot)] {
+            return Err(X806Error::SafetyViolation(format!(
+                "duplicate keymap hardware slot {hw_slot} at button {ui_btn}"
+            )));
+        }
+        seen_slots[usize::from(hw_slot)] = true;
+    }
+
     let macro_capacity = ctx.macro_limit.saturating_sub(usize::from(MACRO_BASE));
     let polling_div = cfg.polling_rate.eeprom_divider();
     let polling_ms = cfg.polling_rate.tick_ms();
@@ -102,11 +124,6 @@ pub fn compile_plan(cfg: &DeviceConfig, ctx: CompileContext) -> Result<EepromPla
         let prof = &cfg.profiles[profile_idx];
         for ui_btn in 0..8 {
             let hw_slot = cfg.keymap[ui_btn];
-            if !(1..=11).contains(&hw_slot) {
-                return Err(X806Error::SafetyViolation(format!(
-                    "invalid keymap hardware slot {hw_slot} for button {ui_btn} (must be 1..=11)"
-                )));
-            }
             let slot_idx = usize::from(hw_slot - 1);
             let desc_offset = (profile_idx * 14 + slot_idx) * 10;
             let action = prof.keys[ui_btn];
@@ -342,6 +359,11 @@ pub fn compile_macro_bytecode(
                     .ok_or_else(|| {
                         X806Error::SafetyViolation("LED block EEPROM address overflow".into())
                     })?;
+                if addr > 0x3FFF {
+                    return Err(X806Error::SafetyViolation(format!(
+                        "LED animation block EEPROM address {addr:#06x} exceeds 14-bit limit 0x3FFF"
+                    )));
+                }
 
                 let raw_len = usize::from(block[0]) * 4 + 4;
                 let padded_len = raw_len.div_ceil(8) * 8;

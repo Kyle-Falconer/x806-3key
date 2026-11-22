@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use x806_core::model::{MacroEvent, MacroEventKind};
 
 /// Maximum number of recorded events in a single live capture session (`55` key-down/up pairs).
@@ -46,11 +44,15 @@ pub enum RecordOutcome {
 
 /// Stateful live keyboard macro recorder with repeat deduplication, orphan key-up filtering,
 /// modifier-delta tracking (`0xE0..=0xE3`), and millisecond inter-event timing.
+///
+/// Reserves cap headroom for every currently held key so `KeyUp` events always fit within
+/// [`MAX_RECORDED_EVENTS`] and [`MacroRecorder::stop`] auto-releases any still-held keys in
+/// deterministic LIFO order.
 #[derive(Debug, Default)]
 pub struct MacroRecorder {
     recording: bool,
     events: Vec<MacroEvent>,
-    held: HashSet<u8>,
+    held: Vec<u8>,
     mods: ModState,
     last_event_ms: Option<u64>,
     key_downs: usize,
@@ -71,10 +73,17 @@ impl MacroRecorder {
         self.key_downs = 0;
     }
 
-    /// Stops recording and returns the captured events.
+    /// Stops recording, auto-releases any still-held keys in LIFO order, and returns the events.
     pub fn stop(&mut self) -> Vec<MacroEvent> {
         self.recording = false;
-        self.held.clear();
+        for hid in self.held.drain(..).rev() {
+            if self.events.len() < MAX_RECORDED_EVENTS {
+                self.events.push(MacroEvent {
+                    kind: MacroEventKind::KeyUp { hid },
+                    delay_ms: DEFAULT_TRAILING_DELAY_MS,
+                });
+            }
+        }
         self.mods = ModState::default();
         self.last_event_ms = None;
         self.key_downs = 0;
@@ -101,11 +110,15 @@ impl MacroRecorder {
             if self.held.contains(&hid) {
                 return RecordOutcome::IgnoredRepeat;
             }
-            if self.key_downs >= MAX_RECORDED_KEY_DOWNS {
+            // Reserve 1 slot for this KeyDown, 1 for its matching KeyUp, and 1 per currently
+            // held key so every pressed key can always be released within MAX_RECORDED_EVENTS.
+            if self.key_downs >= MAX_RECORDED_KEY_DOWNS
+                || self.events.len() + self.held.len() + 2 > MAX_RECORDED_EVENTS
+            {
                 return RecordOutcome::LimitReached;
             }
             self.backfill_previous_delay(now_ms);
-            self.held.insert(hid);
+            self.held.push(hid);
             self.key_downs += 1;
             self.events.push(MacroEvent {
                 kind: MacroEventKind::KeyDown { hid },
@@ -114,9 +127,10 @@ impl MacroRecorder {
             self.last_event_ms = Some(now_ms);
             RecordOutcome::Recorded
         } else {
-            if !self.held.remove(&hid) {
+            let Some(pos) = self.held.iter().position(|&h| h == hid) else {
                 return RecordOutcome::IgnoredOrphanUp;
-            }
+            };
+            self.held.remove(pos);
             self.backfill_previous_delay(now_ms);
             self.events.push(MacroEvent {
                 kind: MacroEventKind::KeyUp { hid },

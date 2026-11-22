@@ -373,3 +373,63 @@ fn dat_and_macro_grp_reject_unbounded_counts_without_panic() {
     let grp_err = ini::parse_macro_groups(huge_grp.as_bytes()).unwrap_err();
     assert!(matches!(grp_err, X806Error::IniParse(_)), "got {grp_err:?}");
 }
+
+#[test]
+fn ini_normalizes_dead_profile_slot_1_and_handles_large_action_ids() {
+    let raw_slot1 = "[Init]\r\nCurConfig=1\r\n[Config0]\r\nK0=65535\r\nK1=70000\r\n";
+    let cfg = ini::parse_config_ini(raw_slot1.as_bytes()).expect("parse ini");
+    assert_eq!(cfg.active_profile, 0, "CurConfig=1 must normalize to 0");
+    assert_eq!(
+        cfg.profiles[0].keys[0],
+        KeyAction::UserMacro {
+            group: 254,
+            index: 255
+        }
+    );
+    assert_eq!(
+        cfg.profiles[0].keys[1],
+        KeyAction::RawLegacy(70000),
+        "values > 65535 must remain RawLegacy instead of truncating"
+    );
+
+    let raw_oob = "[Init]\r\nCurConfig=9\r\n";
+    let cfg_oob = ini::parse_config_ini(raw_oob.as_bytes()).expect("parse oob CurConfig");
+    assert_eq!(cfg_oob.active_profile, 0);
+}
+
+#[test]
+fn ini_bundle_rejects_macro_group_path_traversal() {
+    let dir = std::env::temp_dir().join(format!("x806_traversal_test_{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let ini_path = dir.join("config.ini");
+    let macros_dir = dir.join("macro");
+
+    for bad_name in ["../escape", r"..\escape", "sub/name", r"sub\name", "C:evil", "."] {
+        let mut cfg = defaults::factory_default_config();
+        cfg.macros.groups.push(MacroGroup {
+            name: bad_name.to_string(),
+            macros: Vec::new(),
+        });
+        let err = ini::export_x806_bundle(&cfg, &ini_path, &macros_dir)
+            .expect_err("export must reject path-traversal group name");
+        assert!(
+            matches!(err, X806Error::IniParse(_)),
+            "expected IniParse for '{bad_name}', got {err:?}"
+        );
+    }
+
+    // Also verify import_x806_bundle rejects traversal names from macroGrp.ini
+    std::fs::create_dir_all(&macros_dir).expect("create macros dir");
+    std::fs::write(&ini_path, "[Init]\r\nCurConfig=0\r\n").expect("write config.ini");
+    std::fs::write(
+        macros_dir.join("macroGrp.ini"),
+        ini::encode_macro_groups(&["../evil".to_string()]),
+    )
+    .expect("write macroGrp.ini");
+
+    let err = ini::import_x806_bundle(&ini_path, Some(&macros_dir), None, None)
+        .expect_err("import must reject path-traversal group name");
+    assert!(matches!(err, X806Error::IniParse(_)), "got {err:?}");
+
+    let _ = std::fs::remove_dir_all(&dir);
+}

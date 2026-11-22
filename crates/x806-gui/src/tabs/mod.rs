@@ -17,6 +17,15 @@ pub enum ActiveTab {
     Led,
 }
 
+/// Resolves `active_profile` to a valid hardware profile index (`0`, `2`, or `3`),
+/// mapping dead EEPROM slot `1` or out-of-range values safely to `0` (`Game I`).
+pub fn active_profile_index(active_profile: u8) -> usize {
+    match active_profile {
+        0 | 2 | 3 => usize::from(active_profile),
+        _ => 0,
+    }
+}
+
 impl ActiveTab {
     pub const ALL: [Self; 4] = [Self::Base, Self::Macro, Self::Advanced, Self::Led];
 

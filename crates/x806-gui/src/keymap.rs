@@ -34,7 +34,7 @@ pub fn egui_key_to_hid(key: Key) -> Option<u8> {
         Key::Z => 0x1D,
 
         // Digits 1..=9 (0x1E..=0x26) and 0 (0x27)
-        Key::Num1 => 0x1E,
+        Key::Num1 | Key::Exclamationmark => 0x1E,
         Key::Num2 => 0x1F,
         Key::Num3 => 0x20,
         Key::Num4 => 0x21,
@@ -55,8 +55,8 @@ pub fn egui_key_to_hid(key: Key) -> Option<u8> {
         // Punctuation & OEM symbols
         Key::Minus => 0x2D,
         Key::Equals | Key::Plus => 0x2E,
-        Key::OpenBracket => 0x2F,
-        Key::CloseBracket => 0x30,
+        Key::OpenBracket | Key::OpenCurlyBracket => 0x2F,
+        Key::CloseBracket | Key::CloseCurlyBracket => 0x30,
         Key::Backslash | Key::Pipe => 0x31,
         Key::Semicolon | Key::Colon => 0x33,
         Key::Quote => 0x34,
