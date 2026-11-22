@@ -4,6 +4,8 @@ Open-source, cross-platform configurator, macro manager, and EEPROM flasher for 
 
 Replaces the Windows-only `X806.exe` configurator with native **Linux**, **macOS**, and **Windows** support — zero background daemon required after flashing to the keypad's on-board EEPROM.
 
+![X806 Desktop Configurator Demo](assets/demo.gif)
+
 ## Workspace Layout
 
 - `crates/x806-core` — Protocol library: USB HID transport (`hidapi`), deterministic EEPROM compiler, safety checks, `config.ini` / `.dat` / TOML codecs, and keycode tables.

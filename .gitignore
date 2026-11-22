@@ -3,3 +3,4 @@
 .worktrees/
 *.swp
 .DS_Store
+.demo-build/
