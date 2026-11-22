@@ -10,6 +10,41 @@ use crate::tabs::{key_action_label, media_key_label, shortcut_label};
 pub struct BaseTabState {
     pub selected_key: usize,
     pub record_modal_open: bool,
+    record_modal_just_opened: bool,
+}
+
+impl BaseTabState {
+    /// Opens the single-key capture modal and skips key capture on the opening frame
+    /// so activating `"Record Key..."` via `Enter`/`Space` cannot immediately bind itself.
+    pub fn open_record_modal(&mut self) {
+        self.record_modal_open = true;
+        self.record_modal_just_opened = true;
+    }
+
+    /// Closes the single-key capture modal and clears pending opening-frame state.
+    pub fn close_record_modal(&mut self) {
+        self.record_modal_open = false;
+        self.record_modal_just_opened = false;
+    }
+
+    /// Processes a pressed HID key candidate for the `Record Key` modal.
+    ///
+    /// Ignores the opening frame (`record_modal_just_opened`) and closes the modal once
+    /// a subsequent frame captures a valid HID key.
+    pub fn poll_record_modal_capture(&mut self, pressed_hid: Option<u8>) -> Option<u8> {
+        if !self.record_modal_open {
+            return None;
+        }
+        if self.record_modal_just_opened {
+            self.record_modal_just_opened = false;
+            return None;
+        }
+        if let Some(hid) = pressed_hid {
+            self.close_record_modal();
+            return Some(hid);
+        }
+        None
+    }
 }
 
 const DIRECT_ITEMS: [(&str, KeyAction); 6] = [
@@ -211,7 +246,7 @@ fn render_action_picker(
             .on_hover_text("Press any keyboard key to bind as a single key (42,<hid>)")
             .clicked()
         {
-            state.record_modal_open = true;
+            state.open_record_modal();
         }
         if ui
             .selectable_label(current == KeyAction::Disabled, "Disabled")
@@ -372,7 +407,7 @@ fn render_record_key_modal(
     state: &mut BaseTabState,
 ) {
     let key_idx = state.selected_key;
-    let mut captured_hid: Option<u8> = None;
+    let mut pressed_hid: Option<u8> = None;
 
     ctx.input(|input| {
         for ev in &input.events {
@@ -384,15 +419,14 @@ fn render_record_key_modal(
             } = ev
                 && let Some(hid) = egui_key_to_hid(*key)
             {
-                captured_hid = Some(hid);
+                pressed_hid = Some(hid);
                 break;
             }
         }
     });
 
-    if let Some(hid) = captured_hid {
+    if let Some(hid) = state.poll_record_modal_capture(pressed_hid) {
         cfg.profiles[profile_idx].keys[key_idx] = KeyAction::SingleKey { hid };
-        state.record_modal_open = false;
         return;
     }
 
@@ -425,20 +459,20 @@ fn render_record_key_modal(
                 for (label, hid) in MODAL_MODIFIER_KEYS {
                     if ui.button(label).clicked() {
                         cfg.profiles[profile_idx].keys[key_idx] = KeyAction::SingleKey { hid };
-                        state.record_modal_open = false;
+                        state.close_record_modal();
                     }
                 }
             });
             ui.add_space(8.0);
             ui.horizontal(|ui| {
                 if ui.button("Cancel").clicked() {
-                    state.record_modal_open = false;
+                    state.close_record_modal();
                 }
             });
         });
 
     if !open {
-        state.record_modal_open = false;
+        state.close_record_modal();
     }
 }
 

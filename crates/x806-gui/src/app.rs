@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use directories::ProjectDirs;
 use egui::{Color32, RichText};
 use x806_core::codec::{ini, toml as toml_codec};
-use x806_core::eeprom::{CompileContext, compile_plan};
+use x806_core::eeprom::{CompileContext, EepromPlan, compile_plan};
 use x806_core::hid::{DeviceStatus, HidApiTransport, X806Device};
 use x806_core::model::DeviceConfig;
 use x806_core::{X806Error, defaults};
@@ -139,6 +139,7 @@ impl X806App {
 
         match result {
             Ok(imported) => {
+                self.macro_state.cancel_recording();
                 let grp_count = imported.macros.groups.len();
                 self.config = imported;
                 self.set_toast(
@@ -197,6 +198,7 @@ impl X806App {
     }
 
     fn handle_reset(&mut self) {
+        self.macro_state.cancel_recording();
         self.config = defaults::factory_default_config();
         self.set_toast(
             ToastKind::Info,
@@ -205,36 +207,49 @@ impl X806App {
     }
 
     fn handle_cancel(&mut self) {
+        self.macro_state.cancel_recording();
         self.config = self.saved_config.clone();
         self.set_toast(ToastKind::Info, "Reverted unsaved edits.");
     }
 
     fn handle_apply(&mut self) {
-        // 1. Always persist local TOML config first if OS config dir is available.
-        let mut local_save_err: Option<String> = None;
-        if let Some(path) = &self.config_path
-            && let Err(err) = save_toml_file(path, &self.config)
-        {
-            local_save_err = Some(format!("local save failed ({}): {err}", path.display()));
-        }
+        self.macro_state.cancel_recording();
 
-        // 2. Attempt to flash connected X806 hardware.
+        // 1. Validate & flash connected hardware first (never persist invalid/rejected configs).
         match HidApiTransport::open_first() {
             Ok((transport, manufacturer, product)) => {
                 let mut dev = X806Device::with_strings(transport, manufacturer, product);
                 match dev.flash_config(&self.config) {
                     Ok(plan) => {
+                        let refreshed = dev.read_status().ok();
                         let _ = dev.send_exit();
+                        drop(dev);
+
+                        if let Some(status) = refreshed {
+                            self.device_status = Some(status);
+                            self.device_error = None;
+                        } else {
+                            self.refresh_hardware();
+                        }
+
                         self.saved_config = self.config.clone();
-                        self.refresh_hardware();
-                        let suffix = local_save_err
-                            .as_ref()
-                            .map(|e| format!(" (warning: {e})"))
-                            .unwrap_or_default();
+                        let persist_suffix = match &self.config_path {
+                            Some(path) => match save_toml_file(path, &self.config) {
+                                Ok(()) => String::new(),
+                                Err(err) => format!(
+                                    " (warning: local save to '{}' failed: {err})",
+                                    path.display()
+                                ),
+                            },
+                            None => {
+                                " (warning: OS config directory unavailable; not saved locally)"
+                                    .to_string()
+                            }
+                        };
                         self.set_toast(
                             ToastKind::Success,
                             format!(
-                                "Applied to X806 ({} EEPROM blocks, {}/{} macro bytes).{suffix}",
+                                "Applied to X806 ({} EEPROM blocks, {}/{} macro bytes).{persist_suffix}",
                                 plan.writes.len(),
                                 plan.macro_bytes_used,
                                 plan.macro_limit
@@ -242,9 +257,10 @@ impl X806App {
                         );
                     }
                     Err(err) => {
+                        drop(dev);
                         self.set_toast(
                             ToastKind::Error,
-                            format!("Hardware flash failed: {err}"),
+                            format!("Hardware flash failed (local config not modified): {err}"),
                         );
                     }
                 }
@@ -252,31 +268,33 @@ impl X806App {
             Err(X806Error::DeviceNotFound) => {
                 self.device_status = None;
                 self.device_error = None;
-                match compile_plan(&self.config, CompileContext::default()) {
-                    Ok(plan) => {
-                        if let Some(save_err) = local_save_err {
-                            self.set_toast(
-                                ToastKind::Error,
-                                format!("No X806 keypad connected and {save_err}."),
-                            );
-                        } else {
-                            self.saved_config = self.config.clone();
-                            self.set_toast(
-                                ToastKind::Info,
-                                format!(
-                                    "Saved local config (offline — validated {} EEPROM blocks, {}/{} macro bytes). Connect X806 and click Apply to flash.",
-                                    plan.writes.len(),
-                                    plan.macro_bytes_used,
-                                    plan.macro_limit
-                                ),
-                            );
-                        }
+                match validate_and_save_offline(&self.config, self.config_path.as_deref()) {
+                    Ok((plan, Some(saved_path))) => {
+                        self.saved_config = self.config.clone();
+                        self.set_toast(
+                            ToastKind::Info,
+                            format!(
+                                "Saved local config to '{}' (offline — validated {} EEPROM blocks, {}/{} macro bytes). Connect X806 and click Apply to flash.",
+                                saved_path.display(),
+                                plan.writes.len(),
+                                plan.macro_bytes_used,
+                                plan.macro_limit
+                            ),
+                        );
                     }
-                    Err(err) => {
+                    Ok((plan, None)) => {
                         self.set_toast(
                             ToastKind::Error,
-                            format!("Configuration validation failed: {err}"),
+                            format!(
+                                "Validated config offline ({} EEPROM blocks, {}/{} macro bytes), but OS config directory is unavailable so nothing was saved to disk.",
+                                plan.writes.len(),
+                                plan.macro_bytes_used,
+                                plan.macro_limit
+                            ),
                         );
+                    }
+                    Err(err) => {
+                        self.set_toast(ToastKind::Error, err);
                     }
                 }
             }
@@ -285,7 +303,9 @@ impl X806App {
                 self.device_error = Some(err.to_string());
                 self.set_toast(
                     ToastKind::Error,
-                    format!("Could not open X806 HID interface: {err}"),
+                    format!(
+                        "Could not open X806 HID interface (local config not modified): {err}"
+                    ),
                 );
             }
         }
@@ -312,6 +332,9 @@ impl X806App {
                         {
                             if self.active_tab == ActiveTab::Macro && tab != ActiveTab::Macro {
                                 self.macro_state.cancel_recording();
+                            }
+                            if self.active_tab == ActiveTab::Base && tab != ActiveTab::Base {
+                                self.base_state.close_record_modal();
                             }
                             self.active_tab = tab;
                         }
@@ -460,6 +483,30 @@ impl eframe::App for X806App {
             ActiveTab::Led => led::ui(ui, &mut self.config),
         });
     }
+}
+
+/// Validates `cfg` against the default EEPROM layout before persisting TOML to `config_path`.
+///
+/// Guarantees invalid configs are never written to disk, and distinguishes `config_path == None`
+/// (`Ok((plan, None))`) from a successful file write (`Ok((plan, Some(path)))`).
+pub fn validate_and_save_offline(
+    cfg: &DeviceConfig,
+    config_path: Option<&Path>,
+) -> Result<(EepromPlan, Option<PathBuf>), String> {
+    let plan = compile_plan(cfg, CompileContext::default())
+        .map_err(|err| format!("Configuration validation failed (local config not modified): {err}"))?;
+
+    let Some(path) = config_path else {
+        return Ok((plan, None));
+    };
+
+    save_toml_file(path, cfg).map_err(|err| {
+        format!(
+            "Validated config offline, but failed to save '{}': {err}",
+            path.display()
+        )
+    })?;
+    Ok((plan, Some(path.to_path_buf())))
 }
 
 fn is_ini_path(path: &Path) -> bool {

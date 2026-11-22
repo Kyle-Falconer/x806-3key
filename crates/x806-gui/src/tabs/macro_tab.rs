@@ -67,6 +67,20 @@ impl MacroTabState {
         }
         self.record_started_at = None;
     }
+
+    /// Clamps group/macro selection indices to `cfg` and auto-cancels any active recording
+    /// if no valid macro remains selected (e.g. after Reset, Cancel, or Import).
+    pub fn sync_with_config(&mut self, cfg: &DeviceConfig) {
+        clamp_selections(cfg, self);
+        let has_macro = cfg
+            .macros
+            .groups
+            .get(self.selected_group)
+            .is_some_and(|g| self.selected_macro < g.macros.len());
+        if !has_macro && self.recorder.is_recording() {
+            self.cancel_recording();
+        }
+    }
 }
 
 impl Default for MacroTabState {
@@ -95,10 +109,16 @@ pub fn ui(
     cfg: &mut DeviceConfig,
     state: &mut MacroTabState,
 ) {
-    clamp_selections(cfg, state);
+    state.sync_with_config(cfg);
 
-    // Poll live keyboard & modifier events while recording.
+    // Isolate keyboard focus and poll live keyboard & modifier events while recording.
     if state.recorder.is_recording() {
+        ctx.memory_mut(|mem| {
+            if let Some(focused) = mem.focused() {
+                mem.surrender_focus(focused);
+            }
+        });
+
         let now_ms = state
             .record_started_at
             .map_or(0, |t| t.elapsed().as_millis() as u64);
@@ -170,210 +190,220 @@ fn clamp_selections(cfg: &DeviceConfig, state: &mut MacroTabState) {
 }
 
 fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut MacroTabState) {
-    ui.heading("Macro Groups");
-    ui.horizontal(|ui| {
-        let resp = ui.add(
-            egui::TextEdit::singleline(&mut state.new_group_name)
-                .desired_width(130.0)
-                .hint_text("Group name"),
-        );
-        let add_clicked = ui.button("+ Group").clicked()
-            || (resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)));
-        if add_clicked && !state.recorder.is_recording() {
-            let trimmed = state.new_group_name.trim();
-            let name = if trimmed.is_empty() {
-                format!("Group{}", cfg.macros.groups.len() + 1)
-            } else {
-                clamp_macro_name_utf16(trimmed)
-            };
-            cfg.macros.groups.push(MacroGroup {
-                name,
-                macros: Vec::new(),
-            });
-            state.selected_group = cfg.macros.groups.len() - 1;
-            state.selected_macro = 0;
-            state.new_group_name.clear();
-        }
-    });
+    let is_recording = state.recorder.is_recording();
 
-    egui::Frame::group(ui.style()).show(ui, |ui| {
-        egui::ScrollArea::vertical()
-            .id_salt("macro_groups_list")
-            .max_height(130.0)
-            .show(ui, |ui| {
-                if cfg.macros.groups.is_empty() {
-                    ui.label(RichText::new("No macro groups.").weak());
-                } else {
-                    for (idx, grp) in cfg.macros.groups.iter().enumerate() {
-                        let label = format!("{} ({})", grp.name, grp.macros.len());
-                        if ui
-                            .selectable_label(state.selected_group == idx, label)
-                            .clicked()
-                            && !state.recorder.is_recording()
-                        {
-                            state.selected_group = idx;
-                            state.selected_macro = 0;
-                        }
-                    }
-                }
-            });
-    });
-
-    if !cfg.macros.groups.is_empty() {
-        ui.horizontal(|ui| {
-            let grp_name = &mut cfg.macros.groups[state.selected_group].name;
-            ui.label("Rename:");
-            let mut edited = grp_name.clone();
-            if ui
-                .add(egui::TextEdit::singleline(&mut edited).desired_width(110.0))
-                .changed()
-            {
-                *grp_name = clamp_macro_name_utf16(&edited);
-            }
-            if ui
-                .add_enabled(!state.recorder.is_recording(), egui::Button::new("Del"))
-                .on_hover_text("Delete selected macro group")
-                .clicked()
-            {
-                let removed = state.selected_group;
-                cfg.macros.groups.remove(removed);
-                adjust_bindings_after_group_delete(cfg, removed as u8);
-                clamp_selections(cfg, state);
-            }
-        });
-    }
-
-    ui.add_space(10.0);
-    ui.heading("Macros");
-
-    if !cfg.macros.groups.is_empty() {
+    ui.add_enabled_ui(!is_recording, |ui| {
+        ui.heading("Macro Groups");
         ui.horizontal(|ui| {
             let resp = ui.add(
-                egui::TextEdit::singleline(&mut state.new_macro_name)
+                egui::TextEdit::singleline(&mut state.new_group_name)
                     .desired_width(130.0)
-                    .hint_text("Macro name"),
+                    .hint_text("Group name"),
             );
-            let add_clicked = ui.button("+ Macro").clicked()
+            let add_clicked = ui.button("+ Group").clicked()
                 || (resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)));
-            if add_clicked && !state.recorder.is_recording() {
-                let grp = &mut cfg.macros.groups[state.selected_group];
-                let trimmed = state.new_macro_name.trim();
+            if add_clicked {
+                let trimmed = state.new_group_name.trim();
                 let name = if trimmed.is_empty() {
-                    format!("Macro{}", grp.macros.len() + 1)
+                    format!("Group{}", cfg.macros.groups.len() + 1)
                 } else {
                     clamp_macro_name_utf16(trimmed)
                 };
-                grp.macros.push(Macro {
+                cfg.macros.groups.push(MacroGroup {
                     name,
-                    repeat_mode: RepeatMode::Once,
-                    finish_cycle: false,
-                    opt_flag: 0,
-                    opt_val: 10,
-                    events: Vec::new(),
-                    led_blocks: Vec::new(),
+                    macros: Vec::new(),
                 });
-                state.selected_macro = grp.macros.len() - 1;
-                state.new_macro_name.clear();
+                state.selected_group = cfg.macros.groups.len() - 1;
+                state.selected_macro = 0;
+                state.new_group_name.clear();
             }
         });
 
         egui::Frame::group(ui.style()).show(ui, |ui| {
             egui::ScrollArea::vertical()
-                .id_salt("macro_items_list")
-                .max_height(150.0)
+                .id_salt("macro_groups_list")
+                .max_height(130.0)
                 .show(ui, |ui| {
-                    let macros = &cfg.macros.groups[state.selected_group].macros;
-                    if macros.is_empty() {
-                        ui.label(RichText::new("No macros in this group.").weak());
+                    if cfg.macros.groups.is_empty() {
+                        ui.label(RichText::new("No macro groups.").weak());
                     } else {
-                        for (idx, mac) in macros.iter().enumerate() {
-                            let label = format!("{} ({} steps)", mac.name, mac.events.len());
+                        for (idx, grp) in cfg.macros.groups.iter().enumerate() {
+                            let label = format!("{} ({})", grp.name, grp.macros.len());
                             if ui
-                                .selectable_label(state.selected_macro == idx, label)
+                                .selectable_label(state.selected_group == idx, label)
                                 .clicked()
-                                && !state.recorder.is_recording()
                             {
-                                state.selected_macro = idx;
+                                state.selected_group = idx;
+                                state.selected_macro = 0;
                             }
                         }
                     }
                 });
         });
 
-        if !cfg.macros.groups[state.selected_group].macros.is_empty() {
-            let mac = &mut cfg.macros.groups[state.selected_group].macros[state.selected_macro];
-            let units = mac.name.encode_utf16().count();
+        if !cfg.macros.groups.is_empty() {
             ui.horizontal(|ui| {
-                ui.label("Name:");
-                let mut edited = mac.name.clone();
+                let grp_name = &mut cfg.macros.groups[state.selected_group].name;
+                ui.label("Rename:");
+                let mut edited = grp_name.clone();
                 if ui
-                    .add(egui::TextEdit::singleline(&mut edited).desired_width(115.0))
+                    .add(egui::TextEdit::singleline(&mut edited).desired_width(110.0))
                     .changed()
                 {
-                    mac.name = clamp_macro_name_utf16(&edited);
+                    *grp_name = clamp_macro_name_utf16(&edited);
                 }
-                ui.label(
-                    RichText::new(format!("{units}/{MAX_MACRO_NAME_UTF16_UNITS}"))
-                        .small()
-                        .weak(),
-                );
-            });
-
-            ui.add_space(6.0);
-            ui.horizontal(|ui| {
-                if state.recorder.is_recording() {
-                    let stop_btn = egui::Button::new(
-                        RichText::new("Stop Recording").color(Color32::WHITE).strong(),
-                    )
-                    .fill(Color32::from_rgb(185, 45, 45));
-                    if ui.add(stop_btn).clicked() {
-                        let captured = state.recorder.stop();
-                        state.record_started_at = None;
-                        let target = &mut cfg.macros.groups[state.selected_group].macros
-                            [state.selected_macro];
-                        let remaining = MAX_MACRO_EVENTS.saturating_sub(target.events.len());
-                        target.events.extend(captured.into_iter().take(remaining));
-                    }
-                } else {
-                    let rec_btn = egui::Button::new(
-                        RichText::new("Record").color(Color32::WHITE).strong(),
-                    )
-                    .fill(Color32::from_rgb(42, 118, 72));
-                    if ui.add(rec_btn).clicked() {
-                        state.record_started_at = Some(Instant::now());
-                        state.recorder.start(0);
-                    }
-                    if ui
-                        .button("Delete Macro")
-                        .on_hover_text("Delete selected macro")
-                        .clicked()
-                    {
-                        let g = state.selected_group as u8;
-                        let m = state.selected_macro as u8;
-                        cfg.macros.groups[state.selected_group]
-                            .macros
-                            .remove(state.selected_macro);
-                        adjust_bindings_after_macro_delete(cfg, g, m);
-                        clamp_selections(cfg, state);
-                    }
+                if ui
+                    .button("Del")
+                    .on_hover_text("Delete selected macro group")
+                    .clicked()
+                {
+                    let removed = state.selected_group;
+                    cfg.macros.groups.remove(removed);
+                    adjust_bindings_after_group_delete(cfg, removed as u8);
+                    clamp_selections(cfg, state);
                 }
             });
-
-            if state.recorder.is_recording() {
-                ui.add_space(4.0);
-                ui.label(
-                    RichText::new(format!(
-                        "Recording... {}/{} events (type keys now)",
-                        state.recorder.events().len(),
-                        MAX_RECORDED_EVENTS
-                    ))
-                    .color(Color32::from_rgb(255, 130, 120))
-                    .small(),
-                );
-            }
         }
-    } else {
-        ui.label(RichText::new("Create a group first.").weak());
+
+        ui.add_space(10.0);
+        ui.heading("Macros");
+
+        if !cfg.macros.groups.is_empty() {
+            ui.horizontal(|ui| {
+                let resp = ui.add(
+                    egui::TextEdit::singleline(&mut state.new_macro_name)
+                        .desired_width(130.0)
+                        .hint_text("Macro name"),
+                );
+                let add_clicked = ui.button("+ Macro").clicked()
+                    || (resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)));
+                if add_clicked {
+                    let grp = &mut cfg.macros.groups[state.selected_group];
+                    let trimmed = state.new_macro_name.trim();
+                    let name = if trimmed.is_empty() {
+                        format!("Macro{}", grp.macros.len() + 1)
+                    } else {
+                        clamp_macro_name_utf16(trimmed)
+                    };
+                    grp.macros.push(Macro {
+                        name,
+                        repeat_mode: RepeatMode::Once,
+                        finish_cycle: false,
+                        opt_flag: 0,
+                        opt_val: 10,
+                        events: Vec::new(),
+                        led_blocks: Vec::new(),
+                    });
+                    state.selected_macro = grp.macros.len() - 1;
+                    state.new_macro_name.clear();
+                }
+            });
+
+            egui::Frame::group(ui.style()).show(ui, |ui| {
+                egui::ScrollArea::vertical()
+                    .id_salt("macro_items_list")
+                    .max_height(150.0)
+                    .show(ui, |ui| {
+                        let macros = &cfg.macros.groups[state.selected_group].macros;
+                        if macros.is_empty() {
+                            ui.label(RichText::new("No macros in this group.").weak());
+                        } else {
+                            for (idx, mac) in macros.iter().enumerate() {
+                                let label = format!("{} ({} steps)", mac.name, mac.events.len());
+                                if ui
+                                    .selectable_label(state.selected_macro == idx, label)
+                                    .clicked()
+                                {
+                                    state.selected_macro = idx;
+                                }
+                            }
+                        }
+                    });
+            });
+
+            if !cfg.macros.groups[state.selected_group].macros.is_empty() {
+                let mac = &mut cfg.macros.groups[state.selected_group].macros[state.selected_macro];
+                let units = mac.name.encode_utf16().count();
+                ui.horizontal(|ui| {
+                    ui.label("Name:");
+                    let mut edited = mac.name.clone();
+                    if ui
+                        .add(egui::TextEdit::singleline(&mut edited).desired_width(115.0))
+                        .changed()
+                    {
+                        mac.name = clamp_macro_name_utf16(&edited);
+                    }
+                    ui.label(
+                        RichText::new(format!("{units}/{MAX_MACRO_NAME_UTF16_UNITS}"))
+                            .small()
+                            .weak(),
+                    );
+                });
+            }
+        } else {
+            ui.label(RichText::new("Create a group first.").weak());
+        }
+    });
+
+    // Record / Stop controls stay interactive while recording so Stop is always reachable.
+    if cfg
+        .macros
+        .groups
+        .get(state.selected_group)
+        .is_some_and(|g| state.selected_macro < g.macros.len())
+    {
+        ui.add_space(6.0);
+        ui.horizontal(|ui| {
+            if is_recording {
+                let stop_btn = egui::Button::new(
+                    RichText::new("Stop Recording").color(Color32::WHITE).strong(),
+                )
+                .fill(Color32::from_rgb(185, 45, 45));
+                if ui.add(stop_btn).clicked() {
+                    let captured = state.recorder.stop();
+                    state.record_started_at = None;
+                    let target = &mut cfg.macros.groups[state.selected_group].macros
+                        [state.selected_macro];
+                    let remaining = MAX_MACRO_EVENTS.saturating_sub(target.events.len());
+                    target.events.extend(captured.into_iter().take(remaining));
+                }
+            } else {
+                let rec_btn = egui::Button::new(
+                    RichText::new("Record").color(Color32::WHITE).strong(),
+                )
+                .fill(Color32::from_rgb(42, 118, 72));
+                if ui.add(rec_btn).clicked() {
+                    state.record_started_at = Some(Instant::now());
+                    state.recorder.start(0);
+                }
+                if ui
+                    .button("Delete Macro")
+                    .on_hover_text("Delete selected macro")
+                    .clicked()
+                {
+                    let g = state.selected_group as u8;
+                    let m = state.selected_macro as u8;
+                    cfg.macros.groups[state.selected_group]
+                        .macros
+                        .remove(state.selected_macro);
+                    adjust_bindings_after_macro_delete(cfg, g, m);
+                    clamp_selections(cfg, state);
+                }
+            }
+        });
+
+        if state.recorder.is_recording() {
+            ui.add_space(4.0);
+            ui.label(
+                RichText::new(format!(
+                    "Recording... {}/{} events (type keys now)",
+                    state.recorder.events().len(),
+                    MAX_RECORDED_EVENTS
+                ))
+                .color(Color32::from_rgb(255, 130, 120))
+                .small(),
+            );
+        }
     }
 }
 
@@ -392,90 +422,96 @@ fn render_middle_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Mac
         return;
     }
 
+    let is_recording = state.recorder.is_recording();
     let polling_ms = cfg.polling_rate.tick_ms();
     let mac = &mut cfg.macros.groups[state.selected_group].macros[state.selected_macro];
 
-    // Quick insert panel
-    egui::Frame::group(ui.style()).show(ui, |ui| {
-        ui.horizontal(|ui| {
-            ui.label(RichText::new("Quick Insert").strong());
-            ui.checkbox(&mut state.insert_tap_mode, "Insert Down + Up pair")
-                .on_hover_text("When checked, modifier & mouse buttons insert both KeyDown and KeyUp.");
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if ui
-                    .add_enabled(!mac.events.is_empty(), egui::Button::new("Clear All"))
-                    .clicked()
-                {
-                    mac.events.clear();
+    // Quick insert panel (disabled while recording so keystrokes go exclusively to MacroRecorder)
+    ui.add_enabled_ui(!is_recording, |ui| {
+        egui::Frame::group(ui.style()).show(ui, |ui| {
+            ui.horizontal(|ui| {
+                ui.label(RichText::new("Quick Insert").strong());
+                ui.checkbox(&mut state.insert_tap_mode, "Insert Down + Up pair")
+                    .on_hover_text(
+                        "When checked, modifier & mouse buttons insert both KeyDown and KeyUp.",
+                    );
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    if ui
+                        .add_enabled(!mac.events.is_empty(), egui::Button::new("Clear All"))
+                        .clicked()
+                    {
+                        mac.events.clear();
+                    }
+                });
+            });
+
+            ui.horizontal_wrapped(|ui| {
+                ui.label(RichText::new("Modifiers:").small().weak());
+                for (label, hid) in QUICK_MODIFIERS {
+                    if ui.small_button(label).clicked() {
+                        insert_key_or_tap(&mut mac.events, hid, state.insert_tap_mode);
+                    }
                 }
             });
-        });
 
-        ui.horizontal_wrapped(|ui| {
-            ui.label(RichText::new("Modifiers:").small().weak());
-            for (label, hid) in QUICK_MODIFIERS {
-                if ui.small_button(label).clicked() {
-                    insert_key_or_tap(&mut mac.events, hid, state.insert_tap_mode);
+            ui.horizontal_wrapped(|ui| {
+                ui.label(RichText::new("Mouse:").small().weak());
+                for (label, hid) in QUICK_MOUSE {
+                    if ui.small_button(label).clicked() {
+                        insert_key_or_tap(&mut mac.events, hid, state.insert_tap_mode);
+                    }
                 }
-            }
-        });
-
-        ui.horizontal_wrapped(|ui| {
-            ui.label(RichText::new("Mouse:").small().weak());
-            for (label, hid) in QUICK_MOUSE {
-                if ui.small_button(label).clicked() {
-                    insert_key_or_tap(&mut mac.events, hid, state.insert_tap_mode);
+                ui.separator();
+                ui.label(RichText::new("Delay:").small().weak());
+                ui.add(
+                    egui::DragValue::new(&mut state.insert_delay_ms)
+                        .range(1..=10_000)
+                        .suffix(" ms"),
+                );
+                if ui.small_button("+ Delay").clicked() && mac.events.len() < MAX_MACRO_EVENTS {
+                    mac.events.push(MacroEvent {
+                        kind: MacroEventKind::Delay,
+                        delay_ms: state.insert_delay_ms,
+                    });
                 }
-            }
-            ui.separator();
-            ui.label(RichText::new("Delay:").small().weak());
-            ui.add(
-                egui::DragValue::new(&mut state.insert_delay_ms)
-                    .range(1..=10_000)
-                    .suffix(" ms"),
-            );
-            if ui.small_button("+ Delay").clicked() && mac.events.len() < MAX_MACRO_EVENTS {
-                mac.events.push(MacroEvent {
-                    kind: MacroEventKind::Delay,
-                    delay_ms: state.insert_delay_ms,
-                });
-            }
-        });
+            });
 
-        ui.horizontal_wrapped(|ui| {
-            ui.label(RichText::new("XY Move:").small().weak());
-            ui.label("dX");
-            ui.add(egui::DragValue::new(&mut state.insert_dx).range(-5000..=5000));
-            ui.label("dY");
-            ui.add(egui::DragValue::new(&mut state.insert_dy).range(-5000..=5000));
-            if ui.small_button("+ XY").clicked() && mac.events.len() < MAX_MACRO_EVENTS {
-                mac.events.push(MacroEvent {
-                    kind: MacroEventKind::MoveRelative {
-                        dx: state.insert_dx,
-                        dy: state.insert_dy,
-                    },
-                    delay_ms: DEFAULT_TRAILING_DELAY_MS,
-                });
-            }
-            ui.separator();
-            ui.label(RichText::new("DPI:").small().weak());
-            ui.add(egui::DragValue::new(&mut state.insert_dpi_code).range(0..=16));
-            if ui.small_button("+ DPI Set").clicked() && mac.events.len() < MAX_MACRO_EVENTS {
-                mac.events.push(MacroEvent {
-                    kind: MacroEventKind::DpiSet {
-                        dpi_code: state.insert_dpi_code,
-                    },
-                    delay_ms: DEFAULT_TRAILING_DELAY_MS,
-                });
-            }
-            if ui.small_button("+ DPI Restore").clicked() && mac.events.len() < MAX_MACRO_EVENTS {
-                mac.events.push(MacroEvent {
-                    kind: MacroEventKind::DpiRestore {
-                        dpi_code: state.insert_dpi_code,
-                    },
-                    delay_ms: DEFAULT_TRAILING_DELAY_MS,
-                });
-            }
+            ui.horizontal_wrapped(|ui| {
+                ui.label(RichText::new("XY Move:").small().weak());
+                ui.label("dX");
+                ui.add(egui::DragValue::new(&mut state.insert_dx).range(-5000..=5000));
+                ui.label("dY");
+                ui.add(egui::DragValue::new(&mut state.insert_dy).range(-5000..=5000));
+                if ui.small_button("+ XY").clicked() && mac.events.len() < MAX_MACRO_EVENTS {
+                    mac.events.push(MacroEvent {
+                        kind: MacroEventKind::MoveRelative {
+                            dx: state.insert_dx,
+                            dy: state.insert_dy,
+                        },
+                        delay_ms: DEFAULT_TRAILING_DELAY_MS,
+                    });
+                }
+                ui.separator();
+                ui.label(RichText::new("DPI:").small().weak());
+                ui.add(egui::DragValue::new(&mut state.insert_dpi_code).range(0..=16));
+                if ui.small_button("+ DPI Set").clicked() && mac.events.len() < MAX_MACRO_EVENTS {
+                    mac.events.push(MacroEvent {
+                        kind: MacroEventKind::DpiSet {
+                            dpi_code: state.insert_dpi_code,
+                        },
+                        delay_ms: DEFAULT_TRAILING_DELAY_MS,
+                    });
+                }
+                if ui.small_button("+ DPI Restore").clicked() && mac.events.len() < MAX_MACRO_EVENTS
+                {
+                    mac.events.push(MacroEvent {
+                        kind: MacroEventKind::DpiRestore {
+                            dpi_code: state.insert_dpi_code,
+                        },
+                        delay_ms: DEFAULT_TRAILING_DELAY_MS,
+                    });
+                }
+            });
         });
     });
 
@@ -643,6 +679,8 @@ fn render_middle_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Mac
 }
 
 fn render_right_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut MacroTabState) {
+    let is_recording = state.recorder.is_recording();
+
     ui.heading("Repeat Mode");
     let Some(mac) = cfg
         .macros
@@ -658,50 +696,55 @@ fn render_right_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macr
         state.repeat_count_buf = n.max(1);
     }
 
-    egui::Frame::group(ui.style()).show(ui, |ui| {
-        if ui
-            .radio(
-                matches!(mac.repeat_mode, RepeatMode::UntilRelease),
-                "Run Until Release",
-            )
-            .clicked()
-        {
-            mac.repeat_mode = RepeatMode::UntilRelease;
-        }
-        if ui
-            .radio(
-                matches!(mac.repeat_mode, RepeatMode::UntilClick),
-                "Run Until Click",
-            )
-            .clicked()
-        {
-            mac.repeat_mode = RepeatMode::UntilClick;
-        }
+    ui.add_enabled_ui(!is_recording, |ui| {
+        egui::Frame::group(ui.style()).show(ui, |ui| {
+            if ui
+                .radio(
+                    matches!(mac.repeat_mode, RepeatMode::UntilRelease),
+                    "Run Until Release",
+                )
+                .clicked()
+            {
+                mac.repeat_mode = RepeatMode::UntilRelease;
+            }
+            if ui
+                .radio(
+                    matches!(mac.repeat_mode, RepeatMode::UntilClick),
+                    "Run Until Click",
+                )
+                .clicked()
+            {
+                mac.repeat_mode = RepeatMode::UntilClick;
+            }
 
-        let is_count = matches!(mac.repeat_mode, RepeatMode::Count(_));
-        if ui.radio(is_count, "Repeat On").clicked() {
-            mac.repeat_mode = RepeatMode::Count(state.repeat_count_buf.max(1));
-        }
-        if let RepeatMode::Count(ref mut count) = mac.repeat_mode {
-            ui.horizontal(|ui| {
-                ui.add_space(18.0);
-                ui.label("Times:");
-                if ui.add(egui::DragValue::new(count).range(1..=65535)).changed() {
-                    state.repeat_count_buf = *count;
-                }
-            });
-        }
+            let is_count = matches!(mac.repeat_mode, RepeatMode::Count(_));
+            if ui.radio(is_count, "Repeat On").clicked() {
+                mac.repeat_mode = RepeatMode::Count(state.repeat_count_buf.max(1));
+            }
+            if let RepeatMode::Count(ref mut count) = mac.repeat_mode {
+                ui.horizontal(|ui| {
+                    ui.add_space(18.0);
+                    ui.label("Times:");
+                    if ui
+                        .add(egui::DragValue::new(count).range(1..=65535))
+                        .changed()
+                    {
+                        state.repeat_count_buf = *count;
+                    }
+                });
+            }
 
-        if ui
-            .radio(matches!(mac.repeat_mode, RepeatMode::Once), "Run Once")
-            .clicked()
-        {
-            mac.repeat_mode = RepeatMode::Once;
-        }
+            if ui
+                .radio(matches!(mac.repeat_mode, RepeatMode::Once), "Run Once")
+                .clicked()
+            {
+                mac.repeat_mode = RepeatMode::Once;
+            }
 
-        ui.separator();
-        ui.checkbox(&mut mac.finish_cycle, "Finish cycle on stop")
-            .on_hover_text("Sets flags bit 3 (0x08) for Until Release / Until Click loops.");
+            ui.separator();
+            ui.checkbox(&mut mac.finish_cycle, "Finish cycle on stop")
+                .on_hover_text("Sets flags bit 3 (0x08) for Until Release / Until Click loops.");
+        });
     });
 }
 
