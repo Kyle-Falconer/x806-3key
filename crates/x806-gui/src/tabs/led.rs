@@ -3,11 +3,8 @@ use x806_core::model::{DeviceConfig, LedMode, ReactiveStyle, Rgb4};
 
 use crate::tabs::{active_profile_index, led_mode_label, reactive_style_label};
 
-const STANDARD_LED_MODES: [LedMode; 3] = [
-    LedMode::CycleBreath,
-    LedMode::ButtonResponse,
-    LedMode::Mute,
-];
+const STANDARD_LED_MODES: [LedMode; 3] =
+    [LedMode::CycleBreath, LedMode::ButtonResponse, LedMode::Mute];
 
 const ADVANCED_LED_MODES: [LedMode; 5] = [
     LedMode::DpiBreath,

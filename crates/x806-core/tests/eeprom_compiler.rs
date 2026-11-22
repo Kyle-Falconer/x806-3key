@@ -396,7 +396,11 @@ fn macro_overflow_fails_before_flash() {
                 delay_ms: 5,
             })
             .collect();
-        macros.push(simple_macro(&format!("Big{m_idx}"), RepeatMode::Once, events));
+        macros.push(simple_macro(
+            &format!("Big{m_idx}"),
+            RepeatMode::Once,
+            events,
+        ));
     }
     cfg.macros.groups.push(MacroGroup {
         name: "Big".into(),
@@ -644,7 +648,10 @@ fn raw_xy_quadrants_and_builtin_shortcut_pubg_compilation() {
     let d_p2 = read_slice(&mem, 0x00A0 + (2 * 14 + 6) * 10, 10);
     assert_eq!(d_p0[5], d_p2[5]);
     assert_eq!(d_p0[6] & 0x3F, d_p2[6] & 0x3F);
-    assert_eq!(u16::from(d_p0[5]) | (u16::from(d_p0[6] & 0x3F) << 8), 0x0400);
+    assert_eq!(
+        u16::from(d_p0[5]) | (u16::from(d_p0[6] & 0x3F) << 8),
+        0x0400
+    );
 }
 
 #[test]

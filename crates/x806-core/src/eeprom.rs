@@ -178,10 +178,8 @@ pub fn compile_plan(cfg: &DeviceConfig, ctx: CompileContext) -> Result<EepromPla
 
     // 0x001C: LED mode, reactive bit, and speed (0..=6 active, 7 reserved for Mute)
     let (led_hw_mode, led_react_bit, led_speed) = cfg.led.mode.eeprom_fields(cfg.led.speed);
-    header[0x001C] = 0x80
-        | ((led_hw_mode & 0x07) << 4)
-        | (u8::from(led_react_bit) << 3)
-        | (led_speed & 0x07);
+    header[0x001C] =
+        0x80 | ((led_hw_mode & 0x07) << 4) | (u8::from(led_react_bit) << 3) | (led_speed & 0x07);
 
     // 0x001D: LED cycle palette mask (bits 0..3 -> bits 0,2,4,6) & user color enable (bit 7)
     let c0 = cfg.led.cycle_mask & 1;
@@ -339,14 +337,11 @@ pub fn compile_macro_bytecode(
             let data_addr = if let Some(&addr) = block_addrs.get(&index) {
                 addr
             } else {
-                let block = mac
-                    .led_blocks
-                    .get(usize::from(index))
-                    .ok_or_else(|| {
-                        X806Error::SafetyViolation(format!(
-                            "LED animation event references missing led_blocks[{index}]"
-                        ))
-                    })?;
+                let block = mac.led_blocks.get(usize::from(index)).ok_or_else(|| {
+                    X806Error::SafetyViolation(format!(
+                        "LED animation event references missing led_blocks[{index}]"
+                    ))
+                })?;
                 if block.is_empty() || block[0] == 0 {
                     return Err(X806Error::SafetyViolation(format!(
                         "LED animation block[{index}] has invalid frame count 0"
@@ -378,8 +373,7 @@ pub fn compile_macro_bytecode(
             };
 
             stream[patch_offset + 2] = (data_addr & 0xFF) as u8;
-            stream[patch_offset + 3] =
-                (((data_addr >> 8) as u8) & 0x3F) | ((channel & 0x03) << 6);
+            stream[patch_offset + 3] = (((data_addr >> 8) as u8) & 0x3F) | ((channel & 0x03) << 6);
         }
     }
 

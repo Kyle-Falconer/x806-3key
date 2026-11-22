@@ -164,10 +164,8 @@ fn macro_tab_auto_cancels_recording_when_config_loses_selected_macro() {
 
 #[test]
 fn offline_apply_validates_before_writing_and_handles_missing_config_path() {
-    let tmp_dir = std::env::temp_dir().join(format!(
-        "x806_gui_offline_apply_{}",
-        std::process::id()
-    ));
+    let tmp_dir =
+        std::env::temp_dir().join(format!("x806_gui_offline_apply_{}", std::process::id()));
     let _ = fs::remove_dir_all(&tmp_dir);
     let cfg_path = tmp_dir.join("config.toml");
 
@@ -253,7 +251,10 @@ fn recorder_stop_auto_releases_held_keys_and_reserves_headroom() {
     assert_eq!(rec.on_key_event(0x06, true, t), RecordOutcome::LimitReached);
     let events = rec.stop();
     assert_eq!(events.len(), 110);
-    assert_eq!(events.last().unwrap().kind, MacroEventKind::KeyUp { hid: 0xE0 });
+    assert_eq!(
+        events.last().unwrap().kind,
+        MacroEventKind::KeyUp { hid: 0xE0 }
+    );
 }
 
 #[test]
@@ -268,12 +269,30 @@ fn append_recorded_events_safely_truncates_without_stuck_keys() {
         })
         .collect();
     let captured = vec![
-        MacroEvent { kind: MacroEventKind::KeyDown { hid: 0xE0 }, delay_ms: 10 },
-        MacroEvent { kind: MacroEventKind::KeyDown { hid: 0x04 }, delay_ms: 10 },
-        MacroEvent { kind: MacroEventKind::KeyDown { hid: 0x05 }, delay_ms: 10 },
-        MacroEvent { kind: MacroEventKind::KeyUp { hid: 0x05 }, delay_ms: 10 },
-        MacroEvent { kind: MacroEventKind::KeyUp { hid: 0x04 }, delay_ms: 10 },
-        MacroEvent { kind: MacroEventKind::KeyUp { hid: 0xE0 }, delay_ms: 10 },
+        MacroEvent {
+            kind: MacroEventKind::KeyDown { hid: 0xE0 },
+            delay_ms: 10,
+        },
+        MacroEvent {
+            kind: MacroEventKind::KeyDown { hid: 0x04 },
+            delay_ms: 10,
+        },
+        MacroEvent {
+            kind: MacroEventKind::KeyDown { hid: 0x05 },
+            delay_ms: 10,
+        },
+        MacroEvent {
+            kind: MacroEventKind::KeyUp { hid: 0x05 },
+            delay_ms: 10,
+        },
+        MacroEvent {
+            kind: MacroEventKind::KeyUp { hid: 0x04 },
+            delay_ms: 10,
+        },
+        MacroEvent {
+            kind: MacroEventKind::KeyUp { hid: 0xE0 },
+            delay_ms: 10,
+        },
     ];
 
     let warn = append_recorded_events_safely(&mut target, captured)
@@ -301,8 +320,14 @@ fn append_recorded_events_safely_truncates_without_stuck_keys() {
         })
         .collect();
     let single_pair = vec![
-        MacroEvent { kind: MacroEventKind::KeyDown { hid: 0x04 }, delay_ms: 10 },
-        MacroEvent { kind: MacroEventKind::KeyUp { hid: 0x04 }, delay_ms: 10 },
+        MacroEvent {
+            kind: MacroEventKind::KeyDown { hid: 0x04 },
+            delay_ms: 10,
+        },
+        MacroEvent {
+            kind: MacroEventKind::KeyUp { hid: 0x04 },
+            delay_ms: 10,
+        },
     ];
     let warn2 = append_recorded_events_safely(&mut almost_full, single_pair)
         .expect("must warn when pair does not fit in 1 remaining slot");
@@ -347,4 +372,12 @@ fn validate_group_name_rejects_duplicates_and_path_traversal() {
     assert!(validate_group_name("Streaming", &existing, Some(0)).is_ok());
     assert!(validate_group_name("../evil", &existing, None).is_err());
     assert!(validate_group_name(r"a\b", &existing, None).is_err());
+}
+
+#[test]
+fn app_icon_loads_valid_png() {
+    let icon = x806_gui::load_icon().expect("app icon PNG should decode successfully");
+    assert!(icon.width > 0);
+    assert!(icon.height > 0);
+    assert_eq!(icon.rgba.len(), (icon.width * icon.height * 4) as usize);
 }

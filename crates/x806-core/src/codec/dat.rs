@@ -148,16 +148,12 @@ fn decode_macro_record(raw_val: &str, dat_ver: u32, isd_enabled: bool) -> Result
     }
 
     let mut raw = Vec::with_capacity(expected_bytes);
-    for chunk in decimal.as_bytes()[..expected_bytes * 3]
-        .as_chunks::<3>()
-        .0
-    {
+    for chunk in decimal.as_bytes()[..expected_bytes * 3].as_chunks::<3>().0 {
         let val = (u16::from(chunk[0] - b'0') * 100)
             + (u16::from(chunk[1] - b'0') * 10)
             + u16::from(chunk[2] - b'0');
-        let byte = u8::try_from(val).map_err(|_| {
-            X806Error::DatParse(format!("decimal byte value out of range: {val}"))
-        })?;
+        let byte = u8::try_from(val)
+            .map_err(|_| X806Error::DatParse(format!("decimal byte value out of range: {val}")))?;
         raw.push(byte);
     }
 
@@ -333,12 +329,7 @@ fn encode_macro_record_v3(mac: &Macro) -> [u8; RECORD_BYTES_V3] {
                     (false, true) => 5u8,
                     (false, false) => 6u8,
                 };
-                (
-                    quadrant,
-                    0xF6u8,
-                    dx.saturating_abs(),
-                    dy.saturating_abs(),
-                )
+                (quadrant, 0xF6u8, dx.saturating_abs(), dy.saturating_abs())
             }
             MacroEventKind::DpiSet { dpi_code } => {
                 dpi_count = dpi_count.saturating_add(1);

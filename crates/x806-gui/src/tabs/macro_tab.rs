@@ -8,7 +8,7 @@ use x806_core::model::{
 };
 
 use crate::keymap::egui_key_to_hid;
-use crate::recorder::{DEFAULT_TRAILING_DELAY_MS, MacroRecorder, MAX_RECORDED_EVENTS, ModState};
+use crate::recorder::{DEFAULT_TRAILING_DELAY_MS, MAX_RECORDED_EVENTS, MacroRecorder, ModState};
 
 /// Maximum macro name length in UTF-16 code units matching `.dat` binary records (`60 bytes`).
 pub const MAX_MACRO_NAME_UTF16_UNITS: usize = 30;
@@ -517,14 +517,16 @@ fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macro
         ui.horizontal(|ui| {
             if is_recording {
                 let stop_btn = egui::Button::new(
-                    RichText::new("Stop Recording").color(Color32::WHITE).strong(),
+                    RichText::new("Stop Recording")
+                        .color(Color32::WHITE)
+                        .strong(),
                 )
                 .fill(Color32::from_rgb(185, 45, 45));
                 if ui.add(stop_btn).clicked() {
                     let captured = state.recorder.stop();
                     state.record_started_at = None;
-                    let target = &mut cfg.macros.groups[state.selected_group].macros
-                        [state.selected_macro];
+                    let target =
+                        &mut cfg.macros.groups[state.selected_group].macros[state.selected_macro];
                     if let Some(warning) =
                         append_recorded_events_safely(&mut target.events, captured)
                     {
@@ -532,10 +534,9 @@ fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macro
                     }
                 }
             } else {
-                let rec_btn = egui::Button::new(
-                    RichText::new("Record").color(Color32::WHITE).strong(),
-                )
-                .fill(Color32::from_rgb(42, 118, 72));
+                let rec_btn =
+                    egui::Button::new(RichText::new("Record").color(Color32::WHITE).strong())
+                        .fill(Color32::from_rgb(42, 118, 72));
                 if ui.add(rec_btn).clicked() {
                     state.record_started_at = Some(Instant::now());
                     state.recorder.start(0);
@@ -731,60 +732,64 @@ fn render_middle_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Mac
                             for (idx, ev) in mac.events.iter_mut().enumerate() {
                                 ui.label(format!("{:03}", idx + 1));
 
-                                ui.horizontal(|ui| {
-                                    match &mut ev.kind {
-                                        MacroEventKind::KeyDown { hid } => {
-                                            ui.label(
-                                                RichText::new("DOWN")
-                                                    .color(Color32::from_rgb(110, 220, 140))
-                                                    .small(),
-                                            );
-                                            ui.label(format!(
-                                                "{} (0x{hid:02X})",
-                                                hid_display_name(*hid)
-                                            ));
-                                        }
-                                        MacroEventKind::KeyUp { hid } => {
-                                            ui.label(
-                                                RichText::new("UP")
-                                                    .color(Color32::from_rgb(235, 175, 95))
-                                                    .small(),
-                                            );
-                                            ui.label(format!(
-                                                "{} (0x{hid:02X})",
-                                                hid_display_name(*hid)
-                                            ));
-                                        }
-                                        MacroEventKind::Delay => {
-                                            ui.label(
-                                                RichText::new("DELAY")
-                                                    .color(Color32::from_rgb(150, 185, 250))
-                                                    .small(),
-                                            );
-                                        }
-                                        MacroEventKind::MoveRelative { dx, dy } => {
-                                            ui.label("XY");
-                                            ui.add(egui::DragValue::new(dx).prefix("x:").range(-5000..=5000));
-                                            ui.add(egui::DragValue::new(dy).prefix("y:").range(-5000..=5000));
-                                        }
-                                        MacroEventKind::DpiSet { dpi_code } => {
-                                            ui.label("DPI Set");
-                                            ui.add(egui::DragValue::new(dpi_code).range(0..=16));
-                                        }
-                                        MacroEventKind::DpiRestore { dpi_code } => {
-                                            ui.label("DPI Restore");
-                                            ui.add(egui::DragValue::new(dpi_code).range(0..=16));
-                                        }
-                                        MacroEventKind::LedAnim { channel, index } => {
-                                            ui.label(format!("LED ch={channel} idx={index}"));
-                                        }
-                                        MacroEventKind::Raw {
-                                            event_type, hid, ..
-                                        } => {
-                                            ui.label(format!(
-                                                "Raw type={event_type} hid=0x{hid:02X}"
-                                            ));
-                                        }
+                                ui.horizontal(|ui| match &mut ev.kind {
+                                    MacroEventKind::KeyDown { hid } => {
+                                        ui.label(
+                                            RichText::new("DOWN")
+                                                .color(Color32::from_rgb(110, 220, 140))
+                                                .small(),
+                                        );
+                                        ui.label(format!(
+                                            "{} (0x{hid:02X})",
+                                            hid_display_name(*hid)
+                                        ));
+                                    }
+                                    MacroEventKind::KeyUp { hid } => {
+                                        ui.label(
+                                            RichText::new("UP")
+                                                .color(Color32::from_rgb(235, 175, 95))
+                                                .small(),
+                                        );
+                                        ui.label(format!(
+                                            "{} (0x{hid:02X})",
+                                            hid_display_name(*hid)
+                                        ));
+                                    }
+                                    MacroEventKind::Delay => {
+                                        ui.label(
+                                            RichText::new("DELAY")
+                                                .color(Color32::from_rgb(150, 185, 250))
+                                                .small(),
+                                        );
+                                    }
+                                    MacroEventKind::MoveRelative { dx, dy } => {
+                                        ui.label("XY");
+                                        ui.add(
+                                            egui::DragValue::new(dx)
+                                                .prefix("x:")
+                                                .range(-5000..=5000),
+                                        );
+                                        ui.add(
+                                            egui::DragValue::new(dy)
+                                                .prefix("y:")
+                                                .range(-5000..=5000),
+                                        );
+                                    }
+                                    MacroEventKind::DpiSet { dpi_code } => {
+                                        ui.label("DPI Set");
+                                        ui.add(egui::DragValue::new(dpi_code).range(0..=16));
+                                    }
+                                    MacroEventKind::DpiRestore { dpi_code } => {
+                                        ui.label("DPI Restore");
+                                        ui.add(egui::DragValue::new(dpi_code).range(0..=16));
+                                    }
+                                    MacroEventKind::LedAnim { channel, index } => {
+                                        ui.label(format!("LED ch={channel} idx={index}"));
+                                    }
+                                    MacroEventKind::Raw {
+                                        event_type, hid, ..
+                                    } => {
+                                        ui.label(format!("Raw type={event_type} hid=0x{hid:02X}"));
                                     }
                                 });
 
@@ -795,7 +800,10 @@ fn render_middle_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Mac
                                 );
 
                                 ui.horizontal(|ui| {
-                                    if ui.add_enabled(idx > 0, egui::Button::new("^").small()).clicked() {
+                                    if ui
+                                        .add_enabled(idx > 0, egui::Button::new("^").small())
+                                        .clicked()
+                                    {
                                         swap_up = Some(idx);
                                     }
                                     if ui

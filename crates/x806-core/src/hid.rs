@@ -76,8 +76,7 @@ impl HidApiTransport {
             .open_device(&api)
             .map_err(|e| X806Error::Hid(e.to_string()))?;
 
-        let manufacturer =
-            manufacturer.or_else(|| device.get_manufacturer_string().ok().flatten());
+        let manufacturer = manufacturer.or_else(|| device.get_manufacturer_string().ok().flatten());
         let product = product.or_else(|| device.get_product_string().ok().flatten());
 
         Ok((Self { device }, manufacturer, product))
@@ -303,18 +302,42 @@ impl<T: HidTransport> X806Device<T> {
 
     /// Sends the firmware apply/reload command (`07 18 10 ...`, `20 ms`, `07 18 00 ...`).
     pub fn apply_reload(&mut self) -> Result<(), X806Error> {
-        self.transport
-            .send_feature_report(&[REPORT_ID_CONTROL, 0x18, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00])?;
+        self.transport.send_feature_report(&[
+            REPORT_ID_CONTROL,
+            0x18,
+            0x10,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+        ])?;
         self.transport.sleep(APPLY_RELOAD_DELAY);
-        self.transport
-            .send_feature_report(&[REPORT_ID_CONTROL, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])?;
+        self.transport.send_feature_report(&[
+            REPORT_ID_CONTROL,
+            0x18,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+        ])?;
         Ok(())
     }
 
     /// Sends the host exit/idle notification (`07 20 00 ...`).
     pub fn send_exit(&mut self) -> Result<(), X806Error> {
-        self.transport
-            .send_feature_report(&[REPORT_ID_CONTROL, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+        self.transport.send_feature_report(&[
+            REPORT_ID_CONTROL,
+            0x20,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+        ])
     }
 
     /// Reads live hardware context, compiles and safety-validates the EEPROM plan,

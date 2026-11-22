@@ -29,7 +29,14 @@ fn rgb4_active_low_conversion() {
     let red = Rgb4 { r: 0, g: 15, b: 15 };
     assert_eq!(red.to_rgb8(), [255, 0, 0]);
     assert_eq!(Rgb4::from_rgb8(255, 0, 0), red);
-    assert_eq!(Rgb4::from_rgb8(0, 0, 0), Rgb4 { r: 15, g: 15, b: 15 });
+    assert_eq!(
+        Rgb4::from_rgb8(0, 0, 0),
+        Rgb4 {
+            r: 15,
+            g: 15,
+            b: 15
+        }
+    );
 }
 
 #[test]
@@ -43,7 +50,9 @@ fn factory_defaults_match_config_reset() {
         for k in 0..8usize {
             assert_eq!(
                 cfg.profiles[p].keys[k],
-                KeyAction::SingleKey { hid: 0x1E + k as u8 }
+                KeyAction::SingleKey {
+                    hid: 0x1E + k as u8
+                }
             );
         }
     }

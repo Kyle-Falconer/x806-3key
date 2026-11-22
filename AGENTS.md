@@ -26,6 +26,15 @@ Add or update tests alongside the affected crate, using `tests/*.rs` for integra
 
 Recent commits use Conventional Commit-style subjects, typically `type(scope): imperative summary`, such as `feat(core): add deterministic eeprom compiler` or `fix(gui): harden apply flow`. Keep commits focused. Pull requests should explain user-visible and protocol changes, link related issues when available, list validation commands and results, and include screenshots for GUI changes.
 
+All commits must follow Conventional Commits (`feat:`, `fix:`, `docs:`, `perf:`, `refactor:`, `test:`, `chore:`) to ensure automated semantic version bumping, changelog updates, and release workflows (`release-plz`, `git-cliff`) operate correctly.
+
+## Versioning & Releases
+
+- Workspace releases use Semantic Versioning (`MAJOR.MINOR.PATCH`).
+- Automated releases run through `.github/workflows/release.yml` using `release-plz`. When commits land on `main`, `release-plz` analyzes commit types and creates a Release PR with updated versions and `CHANGELOG.md`.
+- `release-plz.toml` and `cliff.toml` configure automated versioning and changelog parsing.
+- For local release verification or manual version bumping, use `./scripts/release.sh [--dry-run]`.
+
 ## Device Safety
 
 EEPROM writes affect physical hardware. Preserve `x806-core` validation and protected-byte safeguards; cover changes to write planning with tests. Keep hardware access opt-in in CLI and GUI flows, and use `--dry-run` when reviewing a proposed configuration.

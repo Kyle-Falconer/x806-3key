@@ -1,6 +1,6 @@
 use std::path::Path;
 use x806_core::codec::{dat, ini, toml as toml_codec};
-use x806_core::{defaults, model::*, X806Error};
+use x806_core::{X806Error, defaults, model::*};
 
 #[test]
 fn dat_roundtrip_plain_and_isd_base64() {
@@ -223,10 +223,12 @@ fn shipped_k806_files_if_present() {
     assert_eq!(pubg_en[0].name, "AKM");
     assert_eq!(pubg_en[0].opt_flag, 1);
     assert_eq!(pubg_en[0].opt_val, 2);
-    assert!(pubg_en[0].events.iter().any(|ev| matches!(
-        ev.kind,
-        MacroEventKind::MoveRelative { dx: 0, dy: 2 }
-    )));
+    assert!(
+        pubg_en[0]
+            .events
+            .iter()
+            .any(|ev| matches!(ev.kind, MacroEventKind::MoveRelative { dx: 0, dy: 2 }))
+    );
 
     let pubg_cn_bytes =
         std::fs::read(root.join(r"skins\config\PUBG_CN.dat")).expect("read PUBG_CN.dat");
@@ -369,7 +371,8 @@ fn dat_and_macro_grp_reject_unbounded_counts_without_panic() {
     let dat_err = dat::parse_dat(huge_dat.as_bytes()).unwrap_err();
     assert!(matches!(dat_err, X806Error::DatParse(_)), "got {dat_err:?}");
 
-    let huge_grp = "[MACRO_GROUP_NUM]\nmacGrpNum=9999999999999999999\n[MACRO_GROUP_NAME]\n0=Streaming\n";
+    let huge_grp =
+        "[MACRO_GROUP_NUM]\nmacGrpNum=9999999999999999999\n[MACRO_GROUP_NAME]\n0=Streaming\n";
     let grp_err = ini::parse_macro_groups(huge_grp.as_bytes()).unwrap_err();
     assert!(matches!(grp_err, X806Error::IniParse(_)), "got {grp_err:?}");
 }
@@ -404,7 +407,14 @@ fn ini_bundle_rejects_macro_group_path_traversal() {
     let ini_path = dir.join("config.ini");
     let macros_dir = dir.join("macro");
 
-    for bad_name in ["../escape", r"..\escape", "sub/name", r"sub\name", "C:evil", "."] {
+    for bad_name in [
+        "../escape",
+        r"..\escape",
+        "sub/name",
+        r"sub\name",
+        "C:evil",
+        ".",
+    ] {
         let mut cfg = defaults::factory_default_config();
         cfg.macros.groups.push(MacroGroup {
             name: bad_name.to_string(),

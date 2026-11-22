@@ -101,9 +101,7 @@ pub fn ui(
             "Keypad Layout — {}",
             cfg.profiles[profile_idx].name
         ));
-        cols[0].label(
-            RichText::new("Select a physical key (1–8) to assign an action.").weak(),
-        );
+        cols[0].label(RichText::new("Select a physical key (1–8) to assign an action.").weak());
         cols[0].add_space(12.0);
 
         egui::Frame::group(cols[0].style())
@@ -133,7 +131,9 @@ pub fn ui(
             .inner_margin(egui::Margin::same(10))
             .show(&mut cols[0], |ui| {
                 ui.horizontal(|ui| {
-                    ui.label(RichText::new(format!("Selected: Key {}", state.selected_key + 1)).strong());
+                    ui.label(
+                        RichText::new(format!("Selected: Key {}", state.selected_key + 1)).strong(),
+                    );
                     ui.separator();
                     ui.label(
                         RichText::new(key_action_label(current_action, cfg))
@@ -459,7 +459,11 @@ fn render_record_key_modal(
                 );
             }
             ui.separator();
-            ui.label(RichText::new("Or select a bare modifier key:").small().weak());
+            ui.label(
+                RichText::new("Or select a bare modifier key:")
+                    .small()
+                    .weak(),
+            );
             ui.horizontal_wrapped(|ui| {
                 for (label, hid) in MODAL_MODIFIER_KEYS {
                     if ui.button(label).clicked() {

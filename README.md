@@ -106,6 +106,26 @@ cargo test --workspace
 cargo clippy --workspace --all-targets -- -D warnings
 ```
 
+## Versioning & Releases
+
+This workspace adheres to [Semantic Versioning](https://semver.org/) and follows [Conventional Commits](https://www.conventionalcommits.org/).
+
+- **Automated Releases (`release-plz`)**: Merges into `main` trigger `.github/workflows/release.yml`, which runs `release-plz` to calculate the next semantic version, update `CHANGELOG.md`, update workspace `Cargo.toml`, and open a Release PR. Merging the PR creates the Git tag and GitHub Release.
+- **Release Binaries**: Pushing a version tag (`v*`) triggers automated multi-platform builds for Linux (`x86_64`), Windows (`x86_64`), and macOS (`x86_64` + `aarch64`), attaching release archives to the GitHub Release.
+- **Local Changelogs (`git-cliff`)**: A `cliff.toml` configuration is included to generate or preview changelogs locally using `git-cliff`.
+- **Local Release Helper**: Run `./scripts/release.sh` to preview or prepare releases locally:
+  ```bash
+  # Preview next version and changelog entry without making changes
+  ./scripts/release.sh --dry-run
+
+  # Bump patch, minor, or major version and update CHANGELOG.md
+  ./scripts/release.sh minor
+  ```
+
 ## License
 
 MIT
+
+## Acknowledgments & Assets
+
+- App icon: <a href="https://www.flaticon.com/free-icons/keyboard-button" title="keyboard button icons">Keyboard button icons created by MangMARU - Flaticon</a>

@@ -1,12 +1,12 @@
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
+use crate::X806Error;
 use crate::defaults;
 use crate::model::{
     BuiltinShortcut, DeviceConfig, KeyAction, LedMode, LegacyOsSettings, MacroGroup, MediaKey,
     PollingRate, ReactiveStyle,
 };
-use crate::X806Error;
 
 use super::dat;
 
@@ -58,7 +58,9 @@ pub fn parse_macro_groups(bytes: &[u8]) -> Result<Vec<String>, X806Error> {
             .rfind(|(k, _)| k == &key)
             .map(|(_, v)| v.clone())
             .ok_or_else(|| {
-                X806Error::IniParse(format!("missing macro group entry {idx} in [MACRO_GROUP_NAME]"))
+                X806Error::IniParse(format!(
+                    "missing macro group entry {idx} in [MACRO_GROUP_NAME]"
+                ))
             })?;
         out.push(name);
     }
@@ -596,7 +598,12 @@ fn parse_indexed(key: &str, prefix: &str, limit: usize) -> Option<usize> {
     (idx < limit).then_some(idx)
 }
 
-fn parse_indexed_suffix(key: &str, prefix: &str, suffix: &str, max_one_based: usize) -> Option<usize> {
+fn parse_indexed_suffix(
+    key: &str,
+    prefix: &str,
+    suffix: &str,
+    max_one_based: usize,
+) -> Option<usize> {
     let rest = key.strip_prefix(prefix)?.strip_suffix(suffix)?;
     let idx = rest.parse::<usize>().ok()?;
     (1..=max_one_based).contains(&idx).then_some(idx)

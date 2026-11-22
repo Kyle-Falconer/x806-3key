@@ -20,7 +20,11 @@ pub fn ui(ui: &mut egui::Ui, cfg: &mut DeviceConfig) {
         .inner_margin(egui::Margin::same(14))
         .show(ui, |ui| {
             ui.set_min_width(520.0);
-            ui.label(RichText::new("USB Report Rate (Polling Rate)").strong().size(15.0));
+            ui.label(
+                RichText::new("USB Report Rate (Polling Rate)")
+                    .strong()
+                    .size(15.0),
+            );
             ui.label(
                 RichText::new(
                     "Stored in EEPROM 0x001E. Also controls the firmware macro tick period.",

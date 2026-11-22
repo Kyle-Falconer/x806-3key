@@ -18,12 +18,12 @@ fn default_profile(name: &str) -> ProfileConfig {
 /// Returns the factory-default X806 device configuration matching `configReset.ini`.
 pub fn factory_default_config() -> DeviceConfig {
     let dpi_colors = [
-        Rgb4 { r: 0, g: 15, b: 15 },  // Red
-        Rgb4 { r: 15, g: 0, b: 15 },  // Green
-        Rgb4 { r: 15, g: 15, b: 0 },  // Blue
-        Rgb4 { r: 0, g: 0, b: 15 },   // Yellow
-        Rgb4 { r: 15, g: 0, b: 0 },   // Cyan
-        Rgb4 { r: 0, g: 15, b: 0 },   // Magenta
+        Rgb4 { r: 0, g: 15, b: 15 }, // Red
+        Rgb4 { r: 15, g: 0, b: 15 }, // Green
+        Rgb4 { r: 15, g: 15, b: 0 }, // Blue
+        Rgb4 { r: 0, g: 0, b: 15 },  // Yellow
+        Rgb4 { r: 15, g: 0, b: 0 },  // Cyan
+        Rgb4 { r: 0, g: 15, b: 0 },  // Magenta
     ];
     let user_colors = [
         Rgb4 { r: 0, g: 15, b: 15 },
@@ -107,13 +107,13 @@ pub fn builtin_shortcuts() -> [Macro; 8] {
     const LWIN: u8 = 0xE3;
 
     [
-        chord_macro("Copy", LCTRL, 0x06),         // LCtrl + C
-        chord_macro("Paste", LCTRL, 0x19),        // LCtrl + V
-        chord_macro("My Computer", LWIN, 0x08),   // LWin + E
-        chord_macro("Undo", LCTRL, 0x1D),         // LCtrl + Z
-        chord_macro("Lock PC", LWIN, 0x0F),       // LWin + L
-        chord_macro("Close Window", LALT, 0x3D),  // LAlt + F4
-        chord_macro("Select All", LCTRL, 0x04),   // LCtrl + A
-        chord_macro("Find", LCTRL, 0x09),         // LCtrl + F
+        chord_macro("Copy", LCTRL, 0x06),        // LCtrl + C
+        chord_macro("Paste", LCTRL, 0x19),       // LCtrl + V
+        chord_macro("My Computer", LWIN, 0x08),  // LWin + E
+        chord_macro("Undo", LCTRL, 0x1D),        // LCtrl + Z
+        chord_macro("Lock PC", LWIN, 0x0F),      // LWin + L
+        chord_macro("Close Window", LALT, 0x3D), // LAlt + F4
+        chord_macro("Select All", LCTRL, 0x04),  // LCtrl + A
+        chord_macro("Find", LCTRL, 0x09),        // LCtrl + F
     ]
 }

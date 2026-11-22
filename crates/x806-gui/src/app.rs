@@ -47,8 +47,8 @@ impl X806App {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         cc.egui_ctx.set_visuals(egui::Visuals::dark());
 
-        let config_path = ProjectDirs::from("", "", "x806")
-            .map(|proj| proj.config_dir().join("config.toml"));
+        let config_path =
+            ProjectDirs::from("", "", "x806").map(|proj| proj.config_dir().join("config.toml"));
 
         let mut startup_toast = None;
         let mut config = match config_path.as_ref().filter(|p| p.exists()) {
@@ -310,9 +310,7 @@ impl X806App {
                 self.device_error = Some(err.to_string());
                 self.set_toast(
                     ToastKind::Error,
-                    format!(
-                        "Could not open X806 HID interface (local config not modified): {err}"
-                    ),
+                    format!("Could not open X806 HID interface (local config not modified): {err}"),
                 );
             }
         }
@@ -519,8 +517,9 @@ pub fn validate_and_save_offline(
     cfg: &DeviceConfig,
     config_path: Option<&Path>,
 ) -> Result<(EepromPlan, Option<PathBuf>), String> {
-    let plan = compile_plan(cfg, CompileContext::default())
-        .map_err(|err| format!("Configuration validation failed (local config not modified): {err}"))?;
+    let plan = compile_plan(cfg, CompileContext::default()).map_err(|err| {
+        format!("Configuration validation failed (local config not modified): {err}")
+    })?;
 
     let Some(path) = config_path else {
         return Ok((plan, None));

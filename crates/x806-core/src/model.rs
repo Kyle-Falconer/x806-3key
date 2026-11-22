@@ -230,14 +230,33 @@ impl RepeatMode {
 /// Payload kind for an individual step in a macro sequence.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MacroEventKind {
-    KeyDown { hid: u8 },
-    KeyUp { hid: u8 },
+    KeyDown {
+        hid: u8,
+    },
+    KeyUp {
+        hid: u8,
+    },
     Delay,
-    MoveRelative { dx: i16, dy: i16 },
-    DpiSet { dpi_code: u8 },
-    DpiRestore { dpi_code: u8 },
-    LedAnim { channel: u8, index: u16 },
-    Raw { event_type: u8, hid: u8, arg1: i16, arg2: i16 },
+    MoveRelative {
+        dx: i16,
+        dy: i16,
+    },
+    DpiSet {
+        dpi_code: u8,
+    },
+    DpiRestore {
+        dpi_code: u8,
+    },
+    LedAnim {
+        channel: u8,
+        index: u16,
+    },
+    Raw {
+        event_type: u8,
+        hid: u8,
+        arg1: i16,
+        arg2: i16,
+    },
 }
 
 /// Single timed event inside a [`Macro`].
