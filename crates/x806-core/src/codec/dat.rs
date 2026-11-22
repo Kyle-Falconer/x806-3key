@@ -63,6 +63,13 @@ pub fn parse_dat(bytes: &[u8]) -> Result<Vec<Macro>, X806Error> {
         .parse::<usize>()
         .map_err(|_| X806Error::DatParse(format!("invalid macroNum: {macro_num_str}")))?;
 
+    if macro_num > map.len() {
+        return Err(X806Error::DatParse(format!(
+            "macroNum {macro_num} exceeds available entries ({})",
+            map.len()
+        )));
+    }
+
     let mut out = Vec::with_capacity(macro_num);
     for idx in 0..macro_num {
         let key = idx.to_string();

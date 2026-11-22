@@ -43,6 +43,13 @@ pub fn parse_macro_groups(bytes: &[u8]) -> Result<Vec<String>, X806Error> {
         .map(|(_, kvs)| kvs.as_slice())
         .ok_or_else(|| X806Error::IniParse("missing [MACRO_GROUP_NAME] section".to_string()))?;
 
+    if count > name_kvs.len() {
+        return Err(X806Error::IniParse(format!(
+            "macGrpNum {count} exceeds available entries ({})",
+            name_kvs.len()
+        )));
+    }
+
     let mut out = Vec::with_capacity(count);
     for idx in 0..count {
         let key = idx.to_string();

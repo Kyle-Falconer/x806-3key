@@ -362,3 +362,14 @@ fn ini_bundle_export_import_and_legacy_actions_roundtrip() {
 
     assert_eq!(imported, cfg);
 }
+
+#[test]
+fn dat_and_macro_grp_reject_unbounded_counts_without_panic() {
+    let huge_dat = "[Init]\nDAT_VER=3\n[Macros]\nmacroNum=9999999999999999999\n";
+    let dat_err = dat::parse_dat(huge_dat.as_bytes()).unwrap_err();
+    assert!(matches!(dat_err, X806Error::DatParse(_)), "got {dat_err:?}");
+
+    let huge_grp = "[MACRO_GROUP_NUM]\nmacGrpNum=9999999999999999999\n[MACRO_GROUP_NAME]\n0=Streaming\n";
+    let grp_err = ini::parse_macro_groups(huge_grp.as_bytes()).unwrap_err();
+    assert!(matches!(grp_err, X806Error::IniParse(_)), "got {grp_err:?}");
+}
