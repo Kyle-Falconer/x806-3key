@@ -1,5 +1,6 @@
 pub mod codec;
 pub mod defaults;
+pub mod eeprom;
 pub mod error;
 pub mod keycode;
 pub mod model;
