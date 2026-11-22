@@ -9,3 +9,9 @@ base64 = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 toml = { workspace = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+hidapi = { version = "2", default-features = false, features = ["linux-native"] }
+
+[target.'cfg(not(target_os = "linux"))'.dependencies]
+hidapi = { version = "2" }
