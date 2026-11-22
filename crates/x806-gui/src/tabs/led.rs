@@ -131,7 +131,7 @@ pub fn ui(ui: &mut egui::Ui, cfg: &mut DeviceConfig) {
                             ui.label(RichText::new("Active-Low PWM (0..15)").strong());
                             ui.end_row();
 
-                            for slot in 0..4 {
+                            for (slot, color) in cfg.led.dpi_colors[..4].iter_mut().enumerate() {
                                 let mask_bit = 1u8 << slot;
                                 let mut enabled = (cfg.led.cycle_mask & mask_bit) != 0;
                                 if ui.checkbox(&mut enabled, format!("Slot {}", slot + 1)).changed() {
@@ -144,13 +144,12 @@ pub fn ui(ui: &mut egui::Ui, cfg: &mut DeviceConfig) {
 
                                 ui.label(format!("DPI {}", slot + 1));
 
-                                let mut rgb8 = cfg.led.dpi_colors[slot].to_rgb8();
+                                let mut rgb8 = color.to_rgb8();
                                 if ui.color_edit_button_srgb(&mut rgb8).changed() {
-                                    cfg.led.dpi_colors[slot] =
-                                        Rgb4::from_rgb8(rgb8[0], rgb8[1], rgb8[2]);
+                                    *color = Rgb4::from_rgb8(rgb8[0], rgb8[1], rgb8[2]);
                                 }
 
-                                let c = cfg.led.dpi_colors[slot];
+                                let c = *color;
                                 ui.label(
                                     RichText::new(format!("R:{:2}  G:{:2}  B:{:2}", c.r, c.g, c.b))
                                         .monospace()
@@ -165,15 +164,15 @@ pub fn ui(ui: &mut egui::Ui, cfg: &mut DeviceConfig) {
                     egui::CollapsingHeader::new("Optional Extra DPI Colors (DPI 5–6)")
                         .default_open(false)
                         .show(ui, |ui| {
-                            for slot in 4..6 {
+                            for (offset, color) in cfg.led.dpi_colors[4..6].iter_mut().enumerate() {
+                                let slot = offset + 4;
                                 ui.horizontal(|ui| {
                                     ui.label(format!("DPI {}:", slot + 1));
-                                    let mut rgb8 = cfg.led.dpi_colors[slot].to_rgb8();
+                                    let mut rgb8 = color.to_rgb8();
                                     if ui.color_edit_button_srgb(&mut rgb8).changed() {
-                                        cfg.led.dpi_colors[slot] =
-                                            Rgb4::from_rgb8(rgb8[0], rgb8[1], rgb8[2]);
+                                        *color = Rgb4::from_rgb8(rgb8[0], rgb8[1], rgb8[2]);
                                     }
-                                    let c = cfg.led.dpi_colors[slot];
+                                    let c = *color;
                                     ui.label(
                                         RichText::new(format!(
                                             "R:{:2}  G:{:2}  B:{:2}",

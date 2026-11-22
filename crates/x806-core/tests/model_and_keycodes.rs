@@ -47,9 +47,9 @@ fn factory_defaults_match_config_reset() {
     assert_eq!(cfg.fire_time_ms, 50);
     assert_eq!(cfg.led.mode, LedMode::CycleBreath);
     for p in [0usize, 2, 3] {
-        for k in 0..8usize {
+        for (k, key) in cfg.profiles[p].keys.iter().enumerate() {
             assert_eq!(
-                cfg.profiles[p].keys[k],
+                *key,
                 KeyAction::SingleKey {
                     hid: 0x1E + k as u8
                 }
