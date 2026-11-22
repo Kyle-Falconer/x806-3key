@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode: "class", theme: {extend: {colors: {"inverse-surface": "#e2e2e9", "surface-container-high": "#282a2f", "primary-fixed-dim": "#91ccff", "on-tertiary-fixed-variant": "#633f00", "secondary-fixed-dim": "#80d0fd", "surface-container": "#1e2025", "primary-container": "#78c3ff", "on-error-container": "#ffdad6", "on-surface": "#e2e2e9", "inverse-on-surface": "#2e3036", "on-background": "#e2e2e9", "outline-variant": "#40484f", "surface-container-low": "#1a1c21", "surface-container-highest": "#33353a", "surface-bright": "#37393f", "on-primary-fixed-variant": "#004b73", "primary-fixed": "#cce5ff", "secondary-fixed": "#c4e7ff", primary: "#b7dcff", background: "#111318", "on-primary": "#003351", "surface-variant": "#33353a", "error-container": "#93000a", surface: "#111318", "on-primary-container": "#00507a", "on-surface-variant": "#c0c7d1", "on-secondary": "#00344a", "surface-tint": "#91ccff", "surface-container-lowest": "#0c0e13", "on-error": "#690005", "inverse-primary": "#006496", "tertiary-container": "#f3af4b", "on-tertiary-fixed": "#291800", tertiary: "#ffd093", "tertiary-fixed-dim": "#ffb954", "on-secondary-fixed-variant": "#004c69", "surface-dim": "#111318", "on-tertiary": "#452b00", "on-primary-fixed": "#001e31", error: "#ffb4ab", "secondary-container": "#007098", "tertiary-fixed": "#ffddb4", "on-tertiary-container": "#694300", outline: "#8a919a", "on-secondary-fixed": "#001e2c", secondary: "#80d0fd", "on-secondary-container": "#d0ecff", "record-red": "#ef4444", "keycap-selected-fill": "#264876", "status-online": "#10b981", "text-primary": "#ffffff", "keycap-disabled": "#202226", "status-offline": "#eab308", "toast-error": "#dc2626", "toast-success": "#059669", "commit-green": "#10b981", "keycap-hover-fill": "#363c48", "surface-1": "#202228", "keycap-selected-border": "#5fb4ff", "surface-2": "#282c34", "text-secondary": "#a5b2c6", "text-muted": "#6b7280", "chassis-bg": "#181a1f", "keycap-base": "#2c3038", "border-hairline": "#383e4a"}, borderRadius: {DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem"}, spacing: {"space-xl": "24px", "space-xs": "4px", "margin-desktop": "2rem", "space-md": "12px", "gutter-desktop": "1.5rem", gutter: "10px", "space-sm": "8px", "space-lg": "16px", margin: "16px"}, fontFamily: {"headline-lg": ["JetBrains Mono"], "headline-md": ["Inter"], "body-sm": ["Inter"], "label-sm": ["JetBrains Mono"], "body-lg": ["Hanken Grotesk"], "headline-xl-mobile": ["Hanken Grotesk"], "headline-lg-mobile": ["Hanken Grotesk"], "label-md": ["JetBrains Mono"], "headline-xl": ["Hanken Grotesk"], "body-md": ["Inter"], "code-matrix": ["JetBrains Mono"], "label-lg": ["JetBrains Mono"], "label-keycap": ["Inter"], "code-telemetry": ["JetBrains Mono"], "headline-sm": ["Inter"], "label-keynum": ["Inter"]}, fontSize: {"headline-lg": ["18px", {lineHeight: "24px", fontWeight: "700"}], "headline-md": ["16px", {lineHeight: "22px", fontWeight: "600"}], "body-sm": ["12px", {lineHeight: "16px", fontWeight: "500"}], "label-sm": ["9px", {lineHeight: "12px", letterSpacing: "0.08em", fontWeight: "500"}], "body-lg": ["16px", {lineHeight: "24px", fontWeight: "400"}], "headline-xl-mobile": ["30px", {lineHeight: "36px", letterSpacing: "-0.01em", fontWeight: "700"}], "headline-lg-mobile": ["22px", {lineHeight: "28px", letterSpacing: "-0.005em", fontWeight: "600"}], "label-md": ["11px", {lineHeight: "16px", letterSpacing: "0.06em", fontWeight: "500"}], "headline-xl": ["40px", {lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "700"}], "body-md": ["13px", {lineHeight: "18px", fontWeight: "400"}], "code-matrix": ["12px", {lineHeight: "16px", fontWeight: "400"}], "label-lg": ["13px", {lineHeight: "18px", letterSpacing: "0.04em", fontWeight: "600"}], "label-keycap": ["12.5px", {lineHeight: "16px", fontWeight: "600"}], "code-telemetry": ["11.5px", {lineHeight: "15px", fontWeight: "400"}], "headline-sm": ["14.5px", {lineHeight: "20px", fontWeight: "600"}], "label-keynum": ["11.5px", {lineHeight: "14px", fontWeight: "500"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/95 backdrop-blur-md"><div class="h-20 w-full px-margin-desktop flex flex-col justify-between pt-2 pb-0"><div class="flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md"><img alt="X806 Switch Stem Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrBnivv-Z0iXUjRyMZBl7hqG63d8Zvr3OXkmHvsCKVGz_m5Q6WWkGODz9Uv3HiLzY1ZhwVndcjZLwp4Y8E3z1HMzRyRUaiJ4U2AbD3QMgMXRwFhejBHySb0ZufBT2QrV-NFhTzXcUhpeJiFiUrcdm43zz3Jh7-kF-FVjK3H6fAE-a-rg4YEGXhqrp2xcWCk_FtYkMzDod0HQ0OVAeAx0URChwviUMerGpZOYJlqDTCc_riHwXyU4zsZCCQ"/><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-label-lg text-label-lg uppercase tracking-wider text-primary font-bold">X806 CONFIG // STUDIO</span><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-mono">v2.4.1</span></div><span class="font-label-sm text-label-sm text-outline font-mono">MCU: RP2040 // QMK 0.22.4</span></div></div><div class="flex items-center gap-space-lg"><div class="flex items-center gap-2 px-3 py-1 rounded bg-surface-container text-tertiary font-label-sm text-label-sm font-mono shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary-container opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary-fixed-dim"></span></span><span>Connected: X806 (VID 0x30FA / PID 0x1340) • 1000Hz Polling</span></div><div class="flex items-center gap-space-xs"><a class="p-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center" href="#" title="Calibration Bench"><span class="material-symbols-outlined text-[18px]">tune</span></a><a class="p-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center" href="#" title="Raw HID Diagnostic Console"><span class="material-symbols-outlined text-[18px]">terminal</span></a><a class="p-1.5 rounded bg-surface-container hover:bg-surface-container-high text-secondary hover:text-on-surface transition-colors flex items-center justify-center" href="#" title="Firmware Flash Loader"><span class="material-symbols-outlined text-[18px]">system_update_alt</span></a><a class="p-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center" href="#" title="Technical Documentation"><span class="material-symbols-outlined text-[18px]">menu_book</span></a><a class="p-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center" href="#" title="Device Hardware Settings"><span class="material-symbols-outlined text-[18px]">settings_input_composite</span></a></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div><nav class="flex items-center gap-1 font-label-md text-label-md font-mono tracking-wide" data-active-classes="bg-surface-container-high text-primary-fixed shadow-[inset_0_-2px_0_#00f0ff]"><a class="px-4 py-1.5 rounded-t text-on-surface-variant hover:text-on-surface transition-all" data-path="matrix-layers" href="#">Matrix &amp; Layers</a><a class="px-4 py-1.5 rounded-t text-on-surface-variant hover:text-on-surface transition-all" data-path="rotary-encoders" href="#">Rotary Encoders</a><a class="px-4 py-1.5 rounded-t text-on-surface-variant hover:text-on-surface transition-all" data-path="rgb-underglow-matrix" href="#">RGB Underglow &amp; Matrix</a><a class="px-4 py-1.5 rounded-t text-on-surface-variant hover:text-on-surface transition-all" data-path="oled-hud-screens" href="#">OLED HUD Screens</a><a class="px-4 py-1.5 rounded-t text-on-surface-variant hover:text-on-surface transition-all" data-path="eeprom-profiles" href="#">EEPROM &amp; Profiles</a></nav></div></header><aside class="fixed left-0 top-20 bottom-0 w-64 bg-surface-container-lowest z-40 flex flex-col justify-between"><div class="p-4 flex flex-col gap-4"><div class="flex items-center justify-between text-outline text-label-sm font-label-sm tracking-wider uppercase font-mono"><span>Matrix Topology</span><span class="text-primary-fixed-dim">6x4_PAD</span></div><div class="flex flex-col gap-1 font-mono text-label-md font-label-md"><div class="flex items-center justify-between px-3 py-2 rounded bg-surface-container text-on-surface"><span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>Layer 0 (BASE)</span><span class="text-label-sm text-outline">DEF</span></div><div class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all"><span>Layer 1 (NAV/MEDIA)</span><span class="text-label-sm text-outline">MO(1)</span></div><div class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all"><span>Layer 2 (CAD/NUM)</span><span class="text-label-sm text-outline">TG(2)</span></div><div class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all"><span>Layer 3 (SYS/FLASH)</span><span class="text-label-sm text-outline">DF(3)</span></div></div></div><div class="p-4 bg-surface-container-low flex flex-col gap-2 font-mono"><div class="flex items-center justify-between text-label-sm font-label-sm text-outline"><span>EEPROM USAGE</span><span>312 / 1024 B</span></div><div class="w-full h-1.5 bg-surface-container-highest rounded overflow-hidden"><div class="h-full bg-primary-container w-[30%]"></div></div><div class="text-label-sm font-label-sm text-on-surface-variant flex items-center justify-between pt-1"><span>CHASSIS TEMP</span><span class="text-tertiary-fixed-dim">28.4°C</span></div></div></aside><div class="pl-64"><main class="relative pt-20 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<!-- Top Workspace Bar: Layer Navigation & Hardware Header -->
+<div class="flex flex-wrap items-center justify-between gap-4 px-8 py-4 bg-surface-container-low">
+<div class="flex items-center gap-2" id="layer-tabs">
+<button class="layer-tab px-3.5 py-1.5 rounded bg-surface-container-high text-primary-fixed font-label-md text-label-md flex items-center gap-2 shadow-[inset_0_-2px_0_#00f0ff] transition-all" data-layer="0" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span>Base</span>
+<span class="font-label-sm text-label-sm text-outline">DEF</span>
+</button>
+<button class="layer-tab px-3.5 py-1.5 rounded bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high font-label-md text-label-md flex items-center gap-2 transition-all" data-layer="1" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+<span>Fn</span>
+<span class="font-label-sm text-label-sm text-outline">MO(1)</span>
+</button>
+<button class="layer-tab px-3.5 py-1.5 rounded bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high font-label-md text-label-md flex items-center gap-2 transition-all" data-layer="2" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+<span>Media</span>
+<span class="font-label-sm text-label-sm text-outline">TG(2)</span>
+</button>
+<button class="layer-tab px-3.5 py-1.5 rounded bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high font-label-md text-label-md flex items-center gap-2 transition-all" data-layer="3" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+<span>Custom</span>
+<span class="font-label-sm text-label-sm text-outline">DF(3)</span>
+</button>
+</div>
+<div class="flex flex-wrap items-center gap-3">
+<div class="flex items-center gap-2 pr-2">
+<span class="material-symbols-outlined text-primary-fixed-dim text-[18px]">memory</span>
+<span class="font-label-lg text-label-lg text-on-surface tracking-wider">X806-MACROPAD // 2X4 + DUAL_ENC</span>
+</div>
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">PCB REV 3.2</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">HOTSWAP SOUTH-FACING</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-primary-fixed-dim font-label-sm text-label-sm">RP2040</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">RAW HID 1000Hz</span>
+<span class="px-2 py-0.5 rounded bg-tertiary-container/10 text-tertiary-fixed-dim font-label-sm text-label-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span>
+          3.3V REG OK
+        </span>
+</div>
+</div>
+</div>
+<!-- Main Dual-Pane Workbench -->
+<div class="flex flex-col xl:flex-row w-full flex-1 gap-6 p-8">
+<!-- Left / Center Stage: Virtual PCB Workbench -->
+<div class="flex-1 flex flex-col gap-6 min-w-0">
+<!-- PCB Mounting Plate Container -->
+<div class="relative rounded-lg bg-surface-container-lowest p-8 shadow-xl flex flex-col justify-between overflow-hidden">
+<!-- Corner Hardware Rivets -->
+<span class="absolute top-3 left-3 w-1.5 h-1.5 rounded-full bg-surface-container-highest"></span>
+<span class="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-surface-container-highest"></span>
+<span class="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-surface-container-highest"></span>
+<span class="absolute bottom-3 right-3 w-1.5 h-1.5 rounded-full bg-surface-container-highest"></span>
+<!-- Subtle Ambient Glow -->
+<div class="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full bg-primary-container/5 blur-3xl"></div>
+<!-- PCB Header Silkscreen -->
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<span class="font-label-md text-label-md text-primary-fixed-dim">MOD_MATRIX_V3.2 // 0x7F</span>
+<span class="font-label-sm text-label-sm text-outline">19.05MM PITCH</span>
+</div>
+<div class="flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span>LIVE_SCAN_ACTIVE</span>
+</div>
+</div>
+<!-- 2x4 Physical Mechanical Switch Matrix -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl w-full mx-auto my-4" id="switch-matrix">
+<!-- Row 0 -->
+<button class="key-node group relative flex flex-col justify-between p-3 h-28 rounded-lg bg-surface-container hover:bg-surface-container-high text-left transition-all duration-75 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-3px_0_rgba(0,0,0,0.65)] active:translate-y-[1px]" data-coord="R00:C00" data-key-index="0" data-keynum="KEY 1" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="font-label-sm text-label-sm text-outline group-hover:text-primary-fixed-dim">[R00:C00]</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">KEY 1</span>
+</div>
+<div class="my-auto flex items-center justify-center w-full py-2 rounded bg-surface-container-low shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+<span class="key-binding font-label-lg text-label-lg text-on-surface">KC_ESC</span>
+</div>
+<div class="flex items-center justify-between w-full">
+<span class="key-mode font-label-sm text-label-sm text-outline">TAP</span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface-container-highest group-hover:bg-primary-container/60"></span>
+</div>
+</button>
+<button class="key-node group relative flex flex-col justify-between p-3 h-28 rounded-lg bg-surface-container hover:bg-surface-container-high text-left transition-all duration-75 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-3px_0_rgba(0,0,0,0.65)] active:translate-y-[1px]" data-coord="R00:C01" data-key-index="1" data-keynum="KEY 2" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="font-label-sm text-label-sm text-outline group-hover:text-primary-fixed-dim">[R00:C01]</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">KEY 2</span>
+</div>
+<div class="my-auto flex items-center justify-center w-full py-2 rounded bg-surface-container-low shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+<span class="key-binding font-label-lg text-label-lg text-on-surface">KC_TAB</span>
+</div>
+<div class="flex items-center justify-between w-full">
+<span class="key-mode font-label-sm text-label-sm text-outline">TAP</span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface-container-highest group-hover:bg-primary-container/60"></span>
+</div>
+</button>
+<button class="key-node group relative flex flex-col justify-between p-3 h-28 rounded-lg bg-surface-container hover:bg-surface-container-high text-left transition-all duration-75 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-3px_0_rgba(0,0,0,0.65)] active:translate-y-[1px]" data-coord="R00:C02" data-key-index="2" data-keynum="KEY 3" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="font-label-sm text-label-sm text-outline group-hover:text-primary-fixed-dim">[R00:C02]</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">KEY 3</span>
+</div>
+<div class="my-auto flex items-center justify-center w-full py-2 rounded bg-surface-container-low shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+<span class="key-binding font-label-lg text-label-lg text-on-surface">KC_COPY</span>
+</div>
+<div class="flex items-center justify-between w-full">
+<span class="key-mode font-label-sm text-label-sm text-outline">TAP</span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface-container-highest group-hover:bg-primary-container/60"></span>
+</div>
+</button>
+<button class="key-node group relative flex flex-col justify-between p-3 h-28 rounded-lg bg-surface-container hover:bg-surface-container-high text-left transition-all duration-75 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-3px_0_rgba(0,0,0,0.65)] active:translate-y-[1px]" data-coord="R00:C03" data-key-index="3" data-keynum="KEY 4" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="font-label-sm text-label-sm text-outline group-hover:text-primary-fixed-dim">[R00:C03]</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">KEY 4</span>
+</div>
+<div class="my-auto flex items-center justify-center w-full py-2 rounded bg-surface-container-low shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+<span class="key-binding font-label-lg text-label-lg text-on-surface">KC_PSTE</span>
+</div>
+<div class="flex items-center justify-between w-full">
+<span class="key-mode font-label-sm text-label-sm text-outline">TAP</span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface-container-highest group-hover:bg-primary-container/60"></span>
+</div>
+</button>
+<!-- Row 1 -->
+<button class="key-node group relative flex flex-col justify-between p-3 h-28 rounded-lg bg-surface-container hover:bg-surface-container-high text-left transition-all duration-75 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-3px_0_rgba(0,0,0,0.65)] active:translate-y-[1px]" data-coord="R01:C00" data-key-index="4" data-keynum="KEY 5" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="font-label-sm text-label-sm text-outline group-hover:text-primary-fixed-dim">[R01:C00]</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">KEY 5</span>
+</div>
+<div class="my-auto flex items-center justify-center w-full py-2 rounded bg-surface-container-low shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+<span class="key-binding font-label-lg text-label-lg text-on-surface">KC_LCTL</span>
+</div>
+<div class="flex items-center justify-between w-full">
+<span class="key-mode font-label-sm text-label-sm text-outline">HOLD</span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface-container-highest group-hover:bg-primary-container/60"></span>
+</div>
+</button>
+<button class="key-node group relative flex flex-col justify-between p-3 h-28 rounded-lg bg-surface-container hover:bg-surface-container-high text-left transition-all duration-75 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-3px_0_rgba(0,0,0,0.65)] active:translate-y-[1px]" data-coord="R01:C01" data-key-index="5" data-keynum="KEY 6" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="font-label-sm text-label-sm text-outline group-hover:text-primary-fixed-dim">[R01:C01]</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">KEY 6</span>
+</div>
+<div class="my-auto flex items-center justify-center w-full py-2 rounded bg-surface-container-low shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+<span class="key-binding font-label-lg text-label-lg text-on-surface">KC_LSFT</span>
+</div>
+<div class="flex items-center justify-between w-full">
+<span class="key-mode font-label-sm text-label-sm text-outline">HOLD</span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface-container-highest group-hover:bg-primary-container/60"></span>
+</div>
+</button>
+<button class="key-node group relative flex flex-col justify-between p-3 h-28 rounded-lg bg-surface-container hover:bg-surface-container-high text-left transition-all duration-75 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-3px_0_rgba(0,0,0,0.65)] active:translate-y-[1px]" data-coord="R01:C02" data-key-index="6" data-keynum="KEY 7" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="font-label-sm text-label-sm text-outline group-hover:text-primary-fixed-dim">[R01:C02]</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">KEY 7</span>
+</div>
+<div class="my-auto flex items-center justify-center w-full py-2 rounded bg-surface-container-low shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+<span class="key-binding font-label-lg text-label-lg text-on-surface">MO(1)</span>
+</div>
+<div class="flex items-center justify-between w-full">
+<span class="key-mode font-label-sm text-label-sm text-secondary">LAYER</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+</div>
+</button>
+<!-- Key 8 Selected by Default -->
+<button class="key-node group relative flex flex-col justify-between p-3 h-28 rounded-lg bg-primary-container/15 text-left transition-all duration-75 shadow-[0_0_0_1px_#00f0ff,0_0_18px_rgba(0,240,255,0.35),inset_0_1px_0_rgba(255,255,255,0.12)] active:translate-y-[1px]" data-coord="R01:C03" data-key-index="7" data-keynum="KEY 8" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="font-label-sm text-label-sm text-primary-fixed">[R01:C03]</span>
+<span class="font-label-sm text-label-sm text-primary-fixed">KEY 8</span>
+</div>
+<div class="my-auto flex items-center justify-center w-full py-2 rounded bg-surface-container-lowest/90 shadow-[inset_0_1px_0_rgba(0,240,255,0.2)]">
+<span class="key-binding font-label-lg text-label-lg text-primary-fixed">M_BUILD</span>
+</div>
+<div class="flex items-center justify-between w-full">
+<span class="key-mode font-label-sm text-label-sm text-primary-fixed-dim">MACRO</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container shadow-[0_0_8px_#00f0ff]"></span>
+</div>
+</button>
+</div>
+<!-- PCB Footer Legend -->
+<div class="flex items-center justify-between mt-6 pt-2 text-outline font-label-sm text-label-sm">
+<span>SWITCH_TYPE: CHERRY_MX_SOUTH</span>
+<span>DIODE_DIR: COL2ROW // 1N4148W</span>
+</div>
+</div>
+<!-- Matrix Scan Engine Telemetry Strip -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="p-4 rounded-lg bg-surface-container flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-outline uppercase">Scan Latency</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md text-primary-fixed">0.82 ms</span>
+<span class="font-label-sm text-label-sm text-tertiary-fixed-dim">NOMINAL</span>
+</div>
+</div>
+<div class="p-4 rounded-lg bg-surface-container flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-outline uppercase">Debounce Algo</span>
+<span class="font-headline-md text-headline-md text-on-surface">Sym Eager 5ms</span>
+</div>
+<div class="p-4 rounded-lg bg-surface-container flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-outline uppercase">Matrix Topology</span>
+<span class="font-headline-md text-headline-md text-on-surface">2 Rows × 4 Cols</span>
+</div>
+<div class="p-4 rounded-lg bg-surface-container flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-outline uppercase">Pressed Buffer</span>
+<span class="font-headline-md text-headline-md text-primary-fixed-dim" id="telemetry-buffer">R01:C03 [GP09]</span>
+</div>
+</div>
+</div>
+<!-- Right-Hand Keycode Assignment Sidebar -->
+<aside class="w-full xl:w-96 flex flex-col gap-4 bg-surface-container-low rounded-lg p-5 shrink-0">
+<!-- Selected Node Header -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary-container shadow-[0_0_8px_#00f0ff]"></span>
+<h2 class="font-label-lg text-label-lg text-primary-fixed" id="sidebar-node-title">NODE [R01:C03] / KEY 8</h2>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-on-surface-variant">SELECTED</span>
+</div>
+<!-- Active Assigned Binding Display -->
+<div class="p-4 rounded bg-surface-container-lowest flex items-center justify-between gap-3">
+<div class="flex flex-col gap-0.5 min-w-0">
+<span class="font-label-sm text-label-sm text-outline uppercase">Active Assigned Binding</span>
+<span class="font-headline-md text-headline-md text-primary-fixed truncate" id="active-binding-display">M_BUILD</span>
+</div>
+<button class="px-3 py-1.5 rounded bg-surface-container hover:bg-error-container text-on-surface-variant hover:text-on-error-container font-label-md text-label-md transition-colors duration-75 shrink-0" id="clear-binding-btn" type="button">
+          Clear
+        </button>
+</div>
+<!-- Key Behavior Trigger Mode Selector -->
+<div class="flex flex-col gap-2">
+<span class="font-label-sm text-label-sm text-outline uppercase">Key Behavior Trigger Mode</span>
+<div class="grid grid-cols-2 gap-2" id="trigger-mode-selector">
+<button class="mode-btn px-3 py-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md text-left transition-colors" data-mode="TAP" type="button">Standard Tap</button>
+<button class="mode-btn px-3 py-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md text-left transition-colors" data-mode="HOLD" type="button">Hold / Tap-Dance</button>
+<button class="mode-btn px-3 py-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md text-left transition-colors" data-mode="LAYER" type="button">Layer Shift</button>
+<button class="mode-btn px-3 py-2 rounded bg-primary-container/15 text-primary-fixed font-label-md text-label-md text-left shadow-[inset_0_0_0_1px_#00f0ff] transition-colors" data-mode="MACRO" type="button">Macro Trigger</button>
+</div>
+</div>
+<!-- Keycode Category Tabs -->
+<div class="flex flex-col gap-2">
+<span class="font-label-sm text-label-sm text-outline uppercase">Keycode Palette</span>
+<div class="grid grid-cols-2 gap-1.5" id="category-tabs">
+<button class="cat-tab px-2.5 py-1.5 rounded bg-surface-container-high text-primary-fixed font-label-sm text-label-sm text-left transition-colors" data-cat="hid" type="button">Standard HID</button>
+<button class="cat-tab px-2.5 py-1.5 rounded bg-surface-container text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm text-left transition-colors" data-cat="consumer" type="button">Consumer Control</button>
+<button class="cat-tab px-2.5 py-1.5 rounded bg-surface-container text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm text-left transition-colors" data-cat="mouse" type="button">Mouse Clicks</button>
+<button class="cat-tab px-2.5 py-1.5 rounded bg-surface-container text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm text-left transition-colors" data-cat="macro" type="button">Macro Execution</button>
+</div>
+</div>
+<!-- Filter Input -->
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[16px]">search</span>
+<input class="w-full pl-9 pr-3 py-2 rounded bg-surface-container-lowest text-on-surface placeholder:text-outline font-code-matrix text-code-matrix focus:outline-none focus:shadow-[0_0_0_1px_#00f0ff]" id="keycode-filter" placeholder="Filter keycodes (e.g. KC_A, MUTE)..." type="text"/>
+</div>
+<!-- Filterable Keycode Grid -->
+<div class="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto pr-1" id="keycode-grid">
+<!-- Populated by JS -->
+</div>
+</aside>
+</div>
+<!-- EEPROM Buffer Sync Footer -->
+<footer class="mt-auto px-8 py-4 bg-surface-container-low flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-6">
+<div class="flex flex-col gap-1.5 min-w-[200px]">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-outline">EEPROM BUFFER</span>
+<span class="text-on-surface" id="eeprom-bytes">342 / 1024 BYTES</span>
+</div>
+<div class="w-full h-1.5 rounded bg-surface-container-highest overflow-hidden">
+<div class="h-full bg-primary-container w-[33%] transition-all duration-300" id="eeprom-bar"></div>
+</div>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 rounded bg-secondary/10 text-secondary font-label-sm text-label-sm" id="unsaved-badge">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+<span>UNSAVED CHANGES</span>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-3">
+<button class="px-4 py-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" id="btn-dry-run" type="button">
+        Dry-Run Diff
+      </button>
+<button class="px-4 py-2 rounded bg-surface-container hover:bg-secondary/15 text-secondary font-label-md text-label-md transition-colors" id="btn-revert" type="button">
+        Read Device (Revert)
+      </button>
+<button class="px-5 py-2 rounded bg-primary-container text-on-primary-container hover:shadow-[0_0_20px_rgba(0,240,255,0.5)] font-label-lg text-label-lg uppercase transition-all" id="btn-apply" type="button">
+        Apply to EEPROM
+      </button>
+</div>
+</footer>
+</div>
+<script>
+  (() => {
+    const keycodeLibrary = {
+      hid: ['KC_ESC', 'KC_TAB', 'KC_SPC', 'KC_ENT', 'KC_BSPC', 'KC_DEL', 'KC_LCTL', 'KC_LSFT', 'KC_LALT', 'KC_LGUI', 'KC_COPY', 'KC_PSTE', 'KC_CUT', 'KC_UNDO', 'KC_F13', 'KC_F14', 'KC_F15', 'KC_F16'],
+      consumer: ['KC_MUTE', 'KC_VOLU', 'KC_VOLD', 'KC_MPLY', 'KC_MNXT', 'KC_MPRV', 'KC_MSTP', 'KC_BRIU', 'KC_BRID'],
+      mouse: ['KC_BTN1', 'KC_BTN2', 'KC_BTN3', 'KC_WH_U', 'KC_WH_D', 'KC_MS_U', 'KC_MS_D', 'KC_MS_L', 'KC_MS_R'],
+      macro: ['M_BUILD', 'M_DEPLOY', 'M_GIT_ST', 'M_SNIP', 'M_TERM', 'M_DEBUG', 'MO(1)', 'TG(2)', 'DF(3)']
+    };
+
+    const layerData = {
+      0: [
+        { code: 'KC_ESC', mode: 'TAP' }, { code: 'KC_TAB', mode: 'TAP' }, { code: 'KC_COPY', mode: 'TAP' }, { code: 'KC_PSTE', mode: 'TAP' },
+        { code: 'KC_LCTL', mode: 'HOLD' }, { code: 'KC_LSFT', mode: 'HOLD' }, { code: 'MO(1)', mode: 'LAYER' }, { code: 'M_BUILD', mode: 'MACRO' }
+      ],
+      1: [
+        { code: 'KC_F13', mode: 'TAP' }, { code: 'KC_F14', mode: 'TAP' }, { code: 'KC_F15', mode: 'TAP' }, { code: 'KC_F16', mode: 'TAP' },
+        { code: 'KC_TRNS', mode: 'TAP' }, { code: 'KC_TRNS', mode: 'TAP' }, { code: 'KC_TRNS', mode: 'LAYER' }, { code: 'M_DEBUG', mode: 'MACRO' }
+      ],
+      2: [
+        { code: 'KC_MPRV', mode: 'TAP' }, { code: 'KC_MPLY', mode: 'TAP' }, { code: 'KC_MNXT', mode: 'TAP' }, { code: 'KC_MUTE', mode: 'TAP' },
+        { code: 'KC_VOLD', mode: 'TAP' }, { code: 'KC_VOLU', mode: 'TAP' }, { code: 'TG(2)', mode: 'LAYER' }, { code: 'KC_MSTP', mode: 'TAP' }
+      ],
+      3: [
+        { code: 'M_GIT_ST', mode: 'MACRO' }, { code: 'M_TERM', mode: 'MACRO' }, { code: 'M_SNIP', mode: 'MACRO' }, { code: 'M_DEPLOY', mode: 'MACRO' },
+        { code: 'KC_BTN1', mode: 'TAP' }, { code: 'KC_BTN2', mode: 'TAP' }, { code: 'DF(0)', mode: 'LAYER' }, { code: 'M_BUILD', mode: 'MACRO' }
+      ]
+    };
+
+    let currentLayer = 0;
+    let selectedKeyIdx = 7; // Key 8 [R01:C03]
+    let currentCategory = 'hid';
+    let hasUnsaved = true;
+
+    const keyNodes = document.querySelectorAll('.key-node');
+    const layerTabs = document.querySelectorAll('.layer-tab');
+    const modeBtns = document.querySelectorAll('.mode-btn');
+    const catTabs = document.querySelectorAll('.cat-tab');
+    const keycodeGrid = document.getElementById('keycode-grid');
+    const filterInput = document.getElementById('keycode-filter');
+    const sidebarTitle = document.getElementById('sidebar-node-title');
+    const activeBindingDisplay = document.getElementById('active-binding-display');
+    const telemetryBuffer = document.getElementById('telemetry-buffer');
+    const unsavedBadge = document.getElementById('unsaved-badge');
+
+    function renderMatrix() {
+      const keys = layerData[currentLayer];
+      keyNodes.forEach((node, idx) => {
+        const isSelected = idx === selectedKeyIdx;
+        const bindingEl = node.querySelector('.key-binding');
+        const modeEl = node.querySelector('.key-mode');
+        bindingEl.textContent = keys[idx].code;
+        modeEl.textContent = keys[idx].mode;
+
+        if (isSelected) {
+          node.classList.remove('bg-surface-container', 'hover:bg-surface-container-high');
+          node.classList.add('bg-primary-container/15', 'shadow-[0_0_0_1px_#00f0ff,0_0_18px_rgba(0,240,255,0.35),inset_0_1px_0_rgba(255,255,255,0.12)]');
+          bindingEl.classList.remove('text-on-surface');
+          bindingEl.classList.add('text-primary-fixed');
+        } else {
+          node.classList.add('bg-surface-container', 'hover:bg-surface-container-high');
+          node.classList.remove('bg-primary-container/15', 'shadow-[0_0_0_1px_#00f0ff,0_0_18px_rgba(0,240,255,0.35),inset_0_1px_0_rgba(255,255,255,0.12)]');
+          bindingEl.classList.add('text-on-surface');
+          bindingEl.classList.remove('text-primary-fixed');
+        }
+      });
+
+      const activeNode = keyNodes[selectedKeyIdx];
+      const coord = activeNode.dataset.coord;
+      const keynum = activeNode.dataset.keynum;
+      sidebarTitle.textContent = `NODE [${coord}] / ${keynum}`;
+      activeBindingDisplay.textContent = keys[selectedKeyIdx].code;
+      telemetryBuffer.textContent = `${coord} [GP0${selectedKeyIdx + 2}]`;
+
+      const currentMode = keys[selectedKeyIdx].mode;
+      modeBtns.forEach(btn => {
+        if (btn.dataset.mode === currentMode) {
+          btn.classList.remove('bg-surface-container', 'text-on-surface-variant');
+          btn.classList.add('bg-primary-container/15', 'text-primary-fixed', 'shadow-[inset_0_0_0_1px_#00f0ff]');
+        } else {
+          btn.classList.add('bg-surface-container', 'text-on-surface-variant');
+          btn.classList.remove('bg-primary-container/15', 'text-primary-fixed', 'shadow-[inset_0_0_0_1px_#00f0ff]');
+        }
+      });
+    }
+
+    function renderKeycodeGrid() {
+      const query = filterInput.value.trim().toUpperCase();
+      const list = keycodeLibrary[currentCategory].filter(k => k.includes(query));
+      keycodeGrid.innerHTML = list.map(code => `
+        <button type="button" data-code="${code}" class="keycode-chip px-2 py-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface hover:text-primary-fixed font-code-matrix text-code-matrix text-center transition-colors">
+          ${code}
+        </button>
+      `).join('');
+
+      document.querySelectorAll('.keycode-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          layerData[currentLayer][selectedKeyIdx].code = chip.dataset.code;
+          markUnsaved(true);
+          renderMatrix();
+        });
+      });
+    }
+
+    function markUnsaved(state) {
+      hasUnsaved = state;
+      if (state) {
+        unsavedBadge.classList.remove('bg-tertiary-container/10', 'text-tertiary-fixed-dim');
+        unsavedBadge.classList.add('bg-secondary/10', 'text-secondary');
+        unsavedBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span><span>UNSAVED CHANGES</span>';
+      } else {
+        unsavedBadge.classList.remove('bg-secondary/10', 'text-secondary');
+        unsavedBadge.classList.add('bg-tertiary-container/10', 'text-tertiary-fixed-dim');
+        unsavedBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span><span>EEPROM SYNCED</span>';
+      }
+    }
+
+    keyNodes.forEach((node, idx) => {
+      node.addEventListener('click', () => {
+        selectedKeyIdx = idx;
+        renderMatrix();
+      });
+    });
+
+    layerTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        currentLayer = parseInt(tab.dataset.layer, 10);
+        layerTabs.forEach(t => {
+          t.classList.remove('bg-surface-container-high', 'text-primary-fixed', 'shadow-[inset_0_-2px_0_#00f0ff]');
+          t.classList.add('bg-surface-container', 'text-on-surface-variant');
+        });
+        tab.classList.add('bg-surface-container-high', 'text-primary-fixed', 'shadow-[inset_0_-2px_0_#00f0ff]');
+        tab.classList.remove('bg-surface-container', 'text-on-surface-variant');
+        renderMatrix();
+      });
+    });
+
+    modeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        layerData[currentLayer][selectedKeyIdx].mode = btn.dataset.mode;
+        markUnsaved(true);
+        renderMatrix();
+      });
+    });
+
+    catTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        currentCategory = tab.dataset.cat;
+        catTabs.forEach(t => {
+          t.classList.remove('bg-surface-container-high', 'text-primary-fixed');
+          t.classList.add('bg-surface-container', 'text-on-surface-variant');
+        });
+        tab.classList.add('bg-surface-container-high', 'text-primary-fixed');
+        tab.classList.remove('bg-surface-container', 'text-on-surface-variant');
+        renderKeycodeGrid();
+      });
+    });
+
+    filterInput.addEventListener('input', renderKeycodeGrid);
+
+    document.getElementById('clear-binding-btn').addEventListener('click', () => {
+      layerData[currentLayer][selectedKeyIdx].code = 'KC_NO';
+      markUnsaved(true);
+      renderMatrix();
+    });
+
+    document.getElementById('btn-apply').addEventListener('click', () => {
+      markUnsaved(false);
+    });
+
+    document.getElementById('btn-revert').addEventListener('click', () => {
+      markUnsaved(false);
+    });
+
+    renderMatrix();
+    renderKeycodeGrid();
+  })();
+</script></main></div></body></html>

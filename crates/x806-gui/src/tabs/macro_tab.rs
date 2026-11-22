@@ -361,7 +361,7 @@ fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macro
             }
         });
 
-        egui::Frame::group(ui.style()).show(ui, |ui| {
+        crate::theme::cad_frame().show(ui, |ui| {
             egui::ScrollArea::vertical()
                 .id_salt("macro_groups_list")
                 .max_height(130.0)
@@ -460,7 +460,7 @@ fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macro
                 }
             });
 
-            egui::Frame::group(ui.style()).show(ui, |ui| {
+            crate::theme::cad_frame().show(ui, |ui| {
                 egui::ScrollArea::vertical()
                     .id_salt("macro_items_list")
                     .max_height(150.0)
@@ -521,7 +521,7 @@ fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macro
                         .color(Color32::WHITE)
                         .strong(),
                 )
-                .fill(Color32::from_rgb(185, 45, 45));
+                .fill(crate::theme::RECORD_RED);
                 if ui.add(stop_btn).clicked() {
                     let captured = state.recorder.stop();
                     state.record_started_at = None;
@@ -536,7 +536,7 @@ fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macro
             } else {
                 let rec_btn =
                     egui::Button::new(RichText::new("Record").color(Color32::WHITE).strong())
-                        .fill(Color32::from_rgb(42, 118, 72));
+                        .fill(crate::theme::COMMIT_GREEN);
                 if ui.add(rec_btn).clicked() {
                     state.record_started_at = Some(Instant::now());
                     state.recorder.start(0);
@@ -565,7 +565,7 @@ fn render_left_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macro
                     state.recorder.events().len(),
                     MAX_RECORDED_EVENTS
                 ))
-                .color(Color32::from_rgb(255, 130, 120))
+                .color(crate::theme::RECORD_RED)
                 .small(),
             );
         }
@@ -593,7 +593,7 @@ fn render_middle_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Mac
 
     // Quick insert panel (disabled while recording so keystrokes go exclusively to MacroRecorder)
     ui.add_enabled_ui(!is_recording, |ui| {
-        egui::Frame::group(ui.style()).show(ui, |ui| {
+        crate::theme::cad_frame().show(ui, |ui| {
             ui.horizontal(|ui| {
                 ui.label(RichText::new("Quick Insert").strong());
                 ui.checkbox(&mut state.insert_tap_mode, "Insert Down + Up pair")
@@ -706,7 +706,7 @@ fn render_middle_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Mac
     let mut delete_idx: Option<usize> = None;
 
     let step_len = mac.events.len();
-    egui::Frame::group(ui.style()).show(ui, |ui| {
+    crate::theme::cad_frame().show(ui, |ui| {
         egui::ScrollArea::vertical()
             .id_salt("macro_steps_table")
             .max_height(290.0)
@@ -736,7 +736,7 @@ fn render_middle_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Mac
                                     MacroEventKind::KeyDown { hid } => {
                                         ui.label(
                                             RichText::new("DOWN")
-                                                .color(Color32::from_rgb(110, 220, 140))
+                                                .color(crate::theme::STATUS_ONLINE)
                                                 .small(),
                                         );
                                         ui.label(format!(
@@ -747,7 +747,7 @@ fn render_middle_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Mac
                                     MacroEventKind::KeyUp { hid } => {
                                         ui.label(
                                             RichText::new("UP")
-                                                .color(Color32::from_rgb(235, 175, 95))
+                                                .color(crate::theme::STATUS_OFFLINE)
                                                 .small(),
                                         );
                                         ui.label(format!(
@@ -758,7 +758,7 @@ fn render_middle_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Mac
                                     MacroEventKind::Delay => {
                                         ui.label(
                                             RichText::new("DELAY")
-                                                .color(Color32::from_rgb(150, 185, 250))
+                                                .color(crate::theme::SECONDARY_NEON)
                                                 .small(),
                                         );
                                     }
@@ -869,7 +869,7 @@ fn render_right_pane(ui: &mut egui::Ui, cfg: &mut DeviceConfig, state: &mut Macr
     }
 
     ui.add_enabled_ui(!is_recording, |ui| {
-        egui::Frame::group(ui.style()).show(ui, |ui| {
+        crate::theme::cad_frame().show(ui, |ui| {
             if ui
                 .radio(
                     matches!(mac.repeat_mode, RepeatMode::UntilRelease),

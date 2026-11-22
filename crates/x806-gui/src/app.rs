@@ -2,7 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use directories::ProjectDirs;
-use egui::{Color32, RichText};
+use egui::{Color32, RichText, Stroke, Vec2};
 use x806_core::codec::{ini, toml as toml_codec};
 use x806_core::eeprom::{CompileContext, EepromPlan, compile_plan};
 use x806_core::hid::{DeviceStatus, HidApiTransport, X806Device};
@@ -45,7 +45,7 @@ pub struct X806App {
 impl X806App {
     /// Initializes dark theme, loads local TOML config if present, and probes attached hardware.
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        cc.egui_ctx.set_visuals(egui::Visuals::dark());
+        crate::theme::apply_stitch_theme(&cc.egui_ctx);
 
         let config_path =
             ProjectDirs::from("", "", "x806").map(|proj| proj.config_dir().join("config.toml"));
@@ -318,23 +318,32 @@ impl X806App {
 
     fn render_top_bar(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::top("x806_top_bar")
-            .exact_height(46.0)
+            .frame(
+                egui::Frame::new()
+                    .fill(crate::theme::SURFACE_DIM)
+                    .stroke(Stroke::new(1.0_f32, crate::theme::BORDER_HAIRLINE))
+                    .inner_margin(egui::Margin::symmetric(16, 8)),
+            )
             .show(ctx, |ui| {
-                ui.horizontal_centered(|ui| {
+                ui.horizontal(|ui| {
+                    ui.spacing_mut().item_spacing = Vec2::new(8.0, 0.0);
                     ui.label(
                         RichText::new("X806")
                             .strong()
-                            .size(17.0)
-                            .color(Color32::from_rgb(120, 195, 255)),
+                            .size(18.0)
+                            .color(crate::theme::PRIMARY_CYAN),
                     );
-                    ui.separator();
+                    ui.label(
+                        RichText::new("CONFIG // STUDIO")
+                            .size(11.0)
+                            .monospace()
+                            .color(crate::theme::TEXT_MUTED),
+                    );
+                    ui.add_space(12.0);
 
                     for tab in ActiveTab::ALL {
                         let selected = self.active_tab == tab;
-                        if ui
-                            .selectable_label(selected, RichText::new(tab.label()).size(14.0))
-                            .clicked()
-                        {
+                        if crate::theme::pill_tab(ui, selected, tab.label()).clicked() {
                             if self.active_tab == ActiveTab::Macro && tab != ActiveTab::Macro {
                                 self.macro_state.cancel_recording();
                             }
@@ -346,34 +355,55 @@ impl X806App {
                     }
 
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        if ui.button("Refresh").clicked() {
+                        if crate::theme::secondary_button(ui, "Refresh").clicked() {
                             self.refresh_hardware();
                         }
 
-                        if let Some(status) = &self.device_status {
-                            let eeprom_kb = match status.macro_limit {
-                                0x0FF8 => "4 KB EEPROM",
-                                0x07F8 => "2 KB EEPROM",
-                                _ => "Custom EEPROM",
+                        // Hardware Status Capsule Pill Badge
+                        let (status_text, dot_color, tooltip) =
+                            if let Some(status) = &self.device_status {
+                                let eeprom_kb = match status.macro_limit {
+                                    0x0FF8 => "4 KB EEPROM",
+                                    0x07F8 => "2 KB EEPROM",
+                                    _ => "Custom EEPROM",
+                                };
+                                let product = status.product.as_deref().unwrap_or("X806");
+                                (
+                                    format!("● Connected: {product} • {eeprom_kb}"),
+                                    crate::theme::STATUS_ONLINE,
+                                    None,
+                                )
+                            } else if let Some(err) = &self.device_error {
+                                (
+                                    "● HID Error".to_string(),
+                                    crate::theme::TOAST_ERROR,
+                                    Some(err.clone()),
+                                )
+                            } else {
+                                (
+                                    "○ Offline (Disconnected)".to_string(),
+                                    crate::theme::STATUS_OFFLINE,
+                                    None,
+                                )
                             };
-                            let product = status.product.as_deref().unwrap_or("X806");
+
+                        let badge = egui::Frame::new()
+                            .fill(crate::theme::SURFACE_1)
+                            .stroke(Stroke::new(1.0_f32, crate::theme::BORDER_HAIRLINE))
+                            .corner_radius(egui::CornerRadius::same(12))
+                            .inner_margin(egui::Margin::symmetric(10, 4));
+
+                        let resp = badge.show(ui, |ui| {
                             ui.label(
-                                RichText::new(format!("● Connected ({product}, {eeprom_kb})"))
-                                    .color(Color32::from_rgb(100, 220, 130))
+                                RichText::new(status_text)
+                                    .monospace()
+                                    .size(11.5)
+                                    .color(dot_color)
                                     .strong(),
                             );
-                        } else if let Some(err) = &self.device_error {
-                            ui.label(
-                                RichText::new("● HID Error")
-                                    .color(Color32::from_rgb(245, 115, 115))
-                                    .strong(),
-                            )
-                            .on_hover_text(err);
-                        } else {
-                            ui.label(
-                                RichText::new("○ Disconnected (Offline)")
-                                    .color(Color32::from_rgb(225, 185, 100)),
-                            );
+                        });
+                        if let Some(tip) = tooltip {
+                            resp.response.on_hover_text(tip);
                         }
                     });
                 });
@@ -385,22 +415,10 @@ impl X806App {
             return;
         };
         let (fill, text_color) = match toast.kind {
-            ToastKind::Success => (
-                Color32::from_rgb(26, 64, 42),
-                Color32::from_rgb(175, 245, 195),
-            ),
-            ToastKind::Info => (
-                Color32::from_rgb(32, 52, 78),
-                Color32::from_rgb(185, 220, 255),
-            ),
-            ToastKind::Warning => (
-                Color32::from_rgb(78, 56, 22),
-                Color32::from_rgb(255, 224, 150),
-            ),
-            ToastKind::Error => (
-                Color32::from_rgb(82, 28, 32),
-                Color32::from_rgb(255, 190, 190),
-            ),
+            ToastKind::Success => (crate::theme::SURFACE_1, crate::theme::STATUS_ONLINE),
+            ToastKind::Info => (crate::theme::SURFACE_1, crate::theme::PRIMARY_CYAN),
+            ToastKind::Warning => (crate::theme::SURFACE_1, crate::theme::STATUS_OFFLINE),
+            ToastKind::Error => (crate::theme::SURFACE_1, crate::theme::TOAST_ERROR),
         };
 
         egui::TopBottomPanel::top("x806_toast_bar")
@@ -423,54 +441,76 @@ impl X806App {
 
     fn render_bottom_bar(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("x806_bottom_bar")
-            .exact_height(48.0)
+            .frame(
+                egui::Frame::new()
+                    .fill(crate::theme::SURFACE_DIM)
+                    .stroke(Stroke::new(1.0_f32, crate::theme::BORDER_HAIRLINE))
+                    .inner_margin(egui::Margin::symmetric(16, 8)),
+            )
             .show(ctx, |ui| {
-                ui.horizontal_centered(|ui| {
-                    ui.label(RichText::new("Profile:").weak());
+                ui.horizontal(|ui| {
+                    ui.label(
+                        RichText::new("PROFILE:")
+                            .size(11.0)
+                            .monospace()
+                            .color(crate::theme::TEXT_MUTED)
+                            .strong(),
+                    );
                     for (slot, label) in ACTIVE_PROFILE_SLOTS {
                         let selected = self.config.active_profile == slot;
-                        if ui
-                            .selectable_label(selected, RichText::new(label).strong())
-                            .clicked()
-                        {
+                        if crate::theme::pill_tab(ui, selected, label).clicked() {
                             self.config.active_profile = slot;
                         }
                     }
 
                     if self.is_dirty() {
                         ui.add_space(8.0);
-                        ui.label(
-                            RichText::new("• Unsaved changes")
-                                .small()
-                                .color(Color32::from_rgb(240, 195, 105)),
-                        );
+                        egui::Frame::new()
+                            .fill(crate::theme::SURFACE_1)
+                            .stroke(Stroke::new(1.0_f32, crate::theme::STATUS_OFFLINE))
+                            .corner_radius(egui::CornerRadius::same(10))
+                            .inner_margin(egui::Margin::symmetric(8, 2))
+                            .show(ui, |ui| {
+                                ui.label(
+                                    RichText::new("● UNSAVED CHANGES")
+                                        .monospace()
+                                        .size(10.5)
+                                        .color(crate::theme::STATUS_OFFLINE)
+                                        .strong(),
+                                );
+                            });
                     }
 
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         let apply_btn = egui::Button::new(
-                            RichText::new("Apply").color(Color32::WHITE).strong(),
+                            RichText::new("APPLY TO EEPROM")
+                                .color(Color32::WHITE)
+                                .strong()
+                                .size(12.5),
                         )
-                        .fill(Color32::from_rgb(44, 115, 195));
+                        .fill(crate::theme::COMMIT_GREEN)
+                        .stroke(Stroke::new(1.0_f32, Color32::from_rgb(16, 185, 129)))
+                        .corner_radius(egui::CornerRadius::same(6))
+                        .min_size(Vec2::new(140.0, 30.0));
+
                         if ui.add(apply_btn).clicked() {
                             self.handle_apply();
                         }
 
-                        if ui
-                            .add_enabled(self.is_dirty(), egui::Button::new("Cancel"))
-                            .clicked()
+                        if self.is_dirty() && crate::theme::secondary_button(ui, "Cancel").clicked()
                         {
                             self.handle_cancel();
                         }
 
                         ui.separator();
 
-                        if ui.button("Reset").clicked() {
+                        if crate::theme::secondary_button(ui, "Reset").clicked() {
                             self.handle_reset();
                         }
-                        if ui.button("Export").clicked() {
+                        if crate::theme::secondary_button(ui, "Export").clicked() {
                             self.handle_export();
                         }
-                        if ui.button("Import").clicked() {
+                        if crate::theme::secondary_button(ui, "Import").clicked() {
                             self.handle_import();
                         }
                     });

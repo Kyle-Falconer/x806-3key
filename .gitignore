@@ -5,3 +5,4 @@
 .DS_Store
 .demo-build/
 .agents/
+skills-lock.json

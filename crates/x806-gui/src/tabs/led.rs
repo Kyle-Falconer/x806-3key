@@ -1,4 +1,4 @@
-use egui::{Color32, RichText};
+use egui::RichText;
 use x806_core::model::{DeviceConfig, LedMode, ReactiveStyle, Rgb4};
 
 use crate::tabs::{active_profile_index, led_mode_label, reactive_style_label};
@@ -34,79 +34,66 @@ pub fn ui(ui: &mut egui::Ui, cfg: &mut DeviceConfig) {
             ui.add_space(8.0);
 
             // 1. LED Mode + Cycle Speed
-            egui::Frame::group(ui.style())
-                .inner_margin(egui::Margin::same(12))
-                .show(ui, |ui| {
-                    ui.label(RichText::new("Lighting Mode").strong().size(14.5));
-                    ui.add_space(6.0);
-                    ui.horizontal(|ui| {
-                        for mode in STANDARD_LED_MODES {
-                            if ui
-                                .selectable_label(cfg.led.mode == mode, led_mode_label(mode))
-                                .clicked()
-                            {
-                                cfg.led.mode = mode;
-                            }
+            crate::theme::cad_frame().show(ui, |ui| {
+                ui.label(RichText::new("Lighting Mode").strong().size(14.5));
+                ui.add_space(6.0);
+                ui.horizontal(|ui| {
+                    for mode in STANDARD_LED_MODES {
+                        if crate::theme::pill_tab(ui, cfg.led.mode == mode, led_mode_label(mode)).clicked() {
+                            cfg.led.mode = mode;
                         }
-                    });
-
-                    ui.add_space(10.0);
-                    ui.add_enabled_ui(cfg.led.mode != LedMode::Mute, |ui| {
-                        ui.horizontal(|ui| {
-                            ui.label("Cycle Speed (0 = fastest, 6 = slowest):");
-                            ui.add(egui::Slider::new(&mut cfg.led.speed, 0..=6));
-                        });
-                    });
-                    if cfg.led.mode == LedMode::Mute {
-                        ui.label(
-                            RichText::new(
-                                "Mute mode writes speed=7 (LED off) to EEPROM 0x001C automatically.",
-                            )
-                            .small()
-                            .weak(),
-                        );
                     }
-
-                    ui.add_space(8.0);
-                    egui::CollapsingHeader::new("Advanced Firmware Modes & Brightness")
-                        .default_open(false)
-                        .show(ui, |ui| {
-                            ui.horizontal_wrapped(|ui| {
-                                for mode in ADVANCED_LED_MODES {
-                                    if ui
-                                        .selectable_label(
-                                            cfg.led.mode == mode,
-                                            led_mode_label(mode),
-                                        )
-                                        .clicked()
-                                    {
-                                        cfg.led.mode = mode;
-                                    }
-                                }
-                            });
-                            ui.add_space(6.0);
-                            ui.horizontal(|ui| {
-                                ui.label("Hardware Brightness (0–7):");
-                                ui.add(egui::Slider::new(&mut cfg.led.brightness, 0..=7));
-                            });
-                            ui.horizontal(|ui| {
-                                ui.checkbox(
-                                    &mut cfg.led.user_color_en,
-                                    "Enable User Palette (0x001D[7])",
-                                );
-                                ui.checkbox(&mut cfg.led.symmetry, "Symmetry");
-                                ui.label("Direction:");
-                                ui.add(egui::DragValue::new(&mut cfg.led.direction).range(0..=3));
-                            });
-                        });
                 });
+
+                ui.add_space(10.0);
+                ui.add_enabled_ui(cfg.led.mode != LedMode::Mute, |ui| {
+                    ui.horizontal(|ui| {
+                        ui.label("Cycle Speed (0 = fastest, 6 = slowest):");
+                        ui.add(egui::Slider::new(&mut cfg.led.speed, 0..=6));
+                    });
+                });
+                if cfg.led.mode == LedMode::Mute {
+                    ui.label(
+                        RichText::new(
+                            "Mute mode writes speed=7 (LED off) to EEPROM 0x001C automatically.",
+                        )
+                        .small()
+                        .weak(),
+                    );
+                }
+
+                ui.add_space(8.0);
+                egui::CollapsingHeader::new(RichText::new("Advanced Firmware Modes & Brightness").strong())
+                    .default_open(false)
+                    .show(ui, |ui| {
+                        ui.horizontal_wrapped(|ui| {
+                            for mode in ADVANCED_LED_MODES {
+                                if crate::theme::pill_tab(ui, cfg.led.mode == mode, led_mode_label(mode)).clicked() {
+                                    cfg.led.mode = mode;
+                                }
+                            }
+                        });
+                        ui.add_space(6.0);
+                        ui.horizontal(|ui| {
+                            ui.label("Hardware Brightness (0–7):");
+                            ui.add(egui::Slider::new(&mut cfg.led.brightness, 0..=7));
+                        });
+                        ui.horizontal(|ui| {
+                            ui.checkbox(
+                                &mut cfg.led.user_color_en,
+                                "Enable User Palette (0x001D[7])",
+                            );
+                            ui.checkbox(&mut cfg.led.symmetry, "Symmetry");
+                            ui.label("Direction:");
+                            ui.add(egui::DragValue::new(&mut cfg.led.direction).range(0..=3));
+                        });
+                    });
+            });
 
             ui.add_space(10.0);
 
             // 2. 4-Slot Cycle Colors (CYC_7COL_EN bits 0..3 + DPI0..3 active-low 4-bit RGB)
-            egui::Frame::group(ui.style())
-                .inner_margin(egui::Margin::same(12))
-                .show(ui, |ui| {
+            crate::theme::cad_frame().show(ui, |ui| {
                     ui.label(
                         RichText::new("Cycle Color Palette (4-bit Active-Low Hardware RGB)")
                             .strong()
@@ -190,9 +177,7 @@ pub fn ui(ui: &mut egui::Ui, cfg: &mut DeviceConfig) {
             // 3. Per-key reactive settings when Button Response mode is active
             if cfg.led.mode == LedMode::ButtonResponse {
                 ui.add_space(10.0);
-                egui::Frame::group(ui.style())
-                    .inner_margin(egui::Margin::same(12))
-                    .show(ui, |ui| {
+                crate::theme::cad_frame().show(ui, |ui| {
                         let prof = &mut cfg.profiles[profile_idx];
                         ui.horizontal(|ui| {
                             ui.label(
@@ -202,7 +187,7 @@ pub fn ui(ui: &mut egui::Ui, cfg: &mut DeviceConfig) {
                                 ))
                                 .strong()
                                 .size(14.5)
-                                .color(Color32::from_rgb(130, 210, 255)),
+                                .color(crate::theme::SECONDARY_NEON),
                             );
                             ui.with_layout(
                                 egui::Layout::right_to_left(egui::Align::Center),

@@ -1,4 +1,4 @@
-use egui::{Color32, RichText, Stroke, Vec2};
+use egui::{RichText, Stroke, Vec2};
 use x806_core::keycode::hid_display_name;
 use x806_core::model::{BuiltinShortcut, DeviceConfig, KeyAction, MediaKey};
 
@@ -97,16 +97,27 @@ pub fn ui(
 
     ui.columns(2, |cols| {
         // Left column: visual 2x4 physical keypad layout
-        cols[0].heading(format!(
-            "Keypad Layout — {}",
-            cfg.profiles[profile_idx].name
-        ));
-        cols[0].label(RichText::new("Select a physical key (1–8) to assign an action.").weak());
-        cols[0].add_space(12.0);
+        cols[0].heading(
+            RichText::new(format!(
+                "Keypad Layout — {}",
+                cfg.profiles[profile_idx].name
+            ))
+            .strong()
+            .size(16.0)
+            .color(crate::theme::TEXT_PRIMARY),
+        );
+        cols[0].label(
+            RichText::new("2×4 Mechanical Matrix • Select a physical key (1–8) to assign")
+                .size(12.0)
+                .color(crate::theme::TEXT_SECONDARY),
+        );
+        cols[0].add_space(10.0);
 
-        egui::Frame::group(cols[0].style())
+        egui::Frame::new()
+            .fill(crate::theme::SURFACE_DIM)
+            .stroke(Stroke::new(1.0_f32, crate::theme::BORDER_HAIRLINE))
             .inner_margin(egui::Margin::same(16))
-            .corner_radius(10.0)
+            .corner_radius(egui::CornerRadius::same(10))
             .show(&mut cols[0], |ui| {
                 // Top row: keys 1..4 (indices 0..4), Bottom row: keys 5..8 (indices 4..8)
                 for row in 0..2 {
@@ -127,27 +138,47 @@ pub fn ui(
 
         cols[0].add_space(12.0);
         let current_action = cfg.profiles[profile_idx].keys[state.selected_key];
-        egui::Frame::group(cols[0].style())
-            .inner_margin(egui::Margin::same(10))
+        let row = state.selected_key / 4;
+        let col = state.selected_key % 4;
+        egui::Frame::new()
+            .fill(crate::theme::SURFACE_1)
+            .stroke(Stroke::new(1.0_f32, crate::theme::BORDER_HAIRLINE))
+            .corner_radius(egui::CornerRadius::same(8))
+            .inner_margin(egui::Margin::same(12))
             .show(&mut cols[0], |ui| {
                 ui.horizontal(|ui| {
                     ui.label(
-                        RichText::new(format!("Selected: Key {}", state.selected_key + 1)).strong(),
+                        RichText::new(format!("SELECTED: KEY 0{}", state.selected_key + 1))
+                            .monospace()
+                            .strong()
+                            .size(13.0)
+                            .color(crate::theme::PRIMARY_CYAN),
+                    );
+                    ui.label(
+                        RichText::new(format!("[R0{row}:C0{col}]"))
+                            .monospace()
+                            .size(11.0)
+                            .color(crate::theme::TEXT_MUTED),
                     );
                     ui.separator();
                     ui.label(
                         RichText::new(key_action_label(current_action, cfg))
-                            .color(Color32::from_rgb(130, 210, 255)),
+                            .strong()
+                            .size(13.0)
+                            .color(crate::theme::SECONDARY_NEON),
                     );
                 });
+                ui.add_space(4.0);
                 ui.label(
                     RichText::new(format!(
-                        "Hardware slot: K{}_MAP = {}",
+                        "Hardware slot: K{}_MAP = 0x{:02X}  •  Descriptor: 0x{:04X}",
                         state.selected_key + 1,
-                        cfg.keymap[state.selected_key]
+                        cfg.keymap[state.selected_key],
+                        0x00A0 + (state.selected_key * 8)
                     ))
+                    .monospace()
                     .small()
-                    .weak(),
+                    .color(crate::theme::TEXT_MUTED),
                 );
             });
 
@@ -168,6 +199,48 @@ pub fn ui(
     }
 }
 
+fn action_chip(ui: &mut egui::Ui, selected: bool, label: &str) -> egui::Response {
+    let fill = if selected {
+        crate::theme::KEYCAP_SELECTED_FILL
+    } else {
+        crate::theme::SURFACE_2
+    };
+    let stroke = if selected {
+        Stroke::new(1.5_f32, crate::theme::KEYCAP_SELECTED_BORDER)
+    } else {
+        Stroke::new(1.0_f32, crate::theme::BORDER_HAIRLINE)
+    };
+    let text_color = if selected {
+        crate::theme::TEXT_PRIMARY
+    } else {
+        crate::theme::TEXT_SECONDARY
+    };
+
+    let text = RichText::new(label).size(12.0).color(text_color);
+
+    let btn = egui::Button::new(text)
+        .fill(fill)
+        .stroke(stroke)
+        .corner_radius(egui::CornerRadius::same(5))
+        .min_size(Vec2::new(0.0, 26.0));
+
+    ui.add(btn)
+}
+
+fn category_frame(ui: &mut egui::Ui, add_contents: impl FnOnce(&mut egui::Ui)) {
+    egui::Frame::new()
+        .fill(crate::theme::SURFACE_1)
+        .stroke(Stroke::new(1.0_f32, crate::theme::BORDER_HAIRLINE))
+        .corner_radius(egui::CornerRadius::same(6))
+        .inner_margin(egui::Margin::same(8))
+        .show(ui, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                ui.spacing_mut().item_spacing = Vec2::new(6.0, 6.0);
+                add_contents(ui);
+            });
+        });
+}
+
 fn draw_keycap_button(
     ui: &mut egui::Ui,
     idx: usize,
@@ -176,18 +249,18 @@ fn draw_keycap_button(
     is_selected: bool,
     state: &mut BaseTabState,
 ) {
-    let size = Vec2::new(102.0, 86.0);
+    let size = Vec2::new(104.0, 88.0);
     let fill = if is_selected {
-        Color32::from_rgb(38, 72, 118)
+        crate::theme::KEYCAP_SELECTED_FILL
     } else if action == KeyAction::Disabled {
-        Color32::from_rgb(32, 34, 38)
+        crate::theme::KEYCAP_DISABLED
     } else {
-        Color32::from_rgb(44, 48, 56)
+        crate::theme::KEYCAP_BASE
     };
     let stroke = if is_selected {
-        Stroke::new(2.0_f32, Color32::from_rgb(95, 180, 255))
+        Stroke::new(2.0_f32, crate::theme::KEYCAP_SELECTED_BORDER)
     } else {
-        Stroke::new(1.0_f32, Color32::from_rgb(76, 82, 92))
+        Stroke::new(1.0_f32, crate::theme::BORDER_HAIRLINE)
     };
 
     let (rect, response) = ui.allocate_exact_size(size, egui::Sense::click());
@@ -196,38 +269,68 @@ fn draw_keycap_button(
     }
 
     let hovered_fill = if response.hovered() && !is_selected {
-        Color32::from_rgb(54, 60, 72)
+        crate::theme::KEYCAP_HOVER_FILL
     } else {
         fill
     };
 
-    ui.painter()
-        .rect(rect, 8.0, hovered_fill, stroke, egui::StrokeKind::Inside);
+    ui.painter().rect(
+        rect,
+        egui::CornerRadius::same(8),
+        hovered_fill,
+        stroke,
+        egui::StrokeKind::Inside,
+    );
 
-    let key_title = format!("Key {}", idx + 1);
+    let row = idx / 4;
+    let col = idx % 4;
+    let key_title = format!("KEY 0{}", idx + 1);
+    let coord = format!("[R0{row}:C0{col}]");
     let binding = key_action_label(action, cfg);
 
-    let inner = rect.shrink(6.0);
+    let inner = rect.shrink(7.0);
     ui.painter().text(
         inner.left_top(),
         egui::Align2::LEFT_TOP,
         key_title,
-        egui::FontId::proportional(11.5),
-        Color32::from_rgb(165, 178, 198),
+        egui::FontId::monospace(10.5),
+        if is_selected {
+            crate::theme::PRIMARY_CYAN
+        } else {
+            crate::theme::TEXT_SECONDARY
+        },
+    );
+    ui.painter().text(
+        inner.right_top(),
+        egui::Align2::RIGHT_TOP,
+        &coord,
+        egui::FontId::monospace(9.0),
+        crate::theme::TEXT_MUTED,
     );
     ui.painter().text(
         inner.center(),
         egui::Align2::CENTER_CENTER,
-        truncate_label(&binding, 14),
-        egui::FontId::proportional(13.0),
+        truncate_label(&binding, 13),
+        egui::FontId::proportional(12.5),
         if action == KeyAction::Disabled {
-            Color32::from_rgb(128, 128, 134)
+            crate::theme::TEXT_MUTED
         } else {
-            Color32::WHITE
+            crate::theme::TEXT_PRIMARY
+        },
+    );
+    ui.painter().text(
+        inner.center_bottom(),
+        egui::Align2::CENTER_BOTTOM,
+        format!("K{}_MAP", idx + 1),
+        egui::FontId::monospace(9.0),
+        if is_selected {
+            crate::theme::PRIMARY_FIXED_DIM
+        } else {
+            crate::theme::TEXT_MUTED
         },
     );
 
-    response.on_hover_text(format!("Key {} — {binding}", idx + 1));
+    response.on_hover_text(format!("Key {} {} — {binding}", idx + 1, coord));
 }
 
 fn render_action_picker(
@@ -241,67 +344,75 @@ fn render_action_picker(
 
     // Quick top actions: Record Key modal + Disabled
     ui.horizontal(|ui| {
+        let rec_btn = egui::Button::new(
+            RichText::new("● Record Key...")
+                .strong()
+                .size(12.5)
+                .color(egui::Color32::WHITE),
+        )
+        .fill(crate::theme::COMMIT_GREEN)
+        .corner_radius(egui::CornerRadius::same(5))
+        .min_size(Vec2::new(0.0, 28.0));
         if ui
-            .button(RichText::new("Record Key...").strong())
+            .add(rec_btn)
             .on_hover_text("Press any keyboard key to bind as a single key (42,<hid>)")
             .clicked()
         {
             state.open_record_modal();
         }
-        if ui
-            .selectable_label(current == KeyAction::Disabled, "Disabled")
-            .clicked()
-        {
+
+        let is_disabled = current == KeyAction::Disabled;
+        if action_chip(ui, is_disabled, "Disabled").clicked() {
             cfg.profiles[profile_idx].keys[key_idx] = KeyAction::Disabled;
         }
     });
     ui.add_space(8.0);
 
     // 1. Direct (6 items)
-    egui::CollapsingHeader::new("Direct Mouse & DPI")
+    egui::CollapsingHeader::new(RichText::new("Direct Mouse & DPI").strong().size(13.0))
         .default_open(true)
         .show(ui, |ui| {
-            ui.horizontal_wrapped(|ui| {
+            category_frame(ui, |ui| {
                 for (label, action) in DIRECT_ITEMS {
-                    if ui.selectable_label(current == action, label).clicked() {
+                    if action_chip(ui, current == action, label).clicked() {
                         cfg.profiles[profile_idx].keys[key_idx] = action;
                     }
                 }
             });
         });
+    ui.add_space(4.0);
 
     // 2. Extend (7 items)
-    egui::CollapsingHeader::new("Extend")
+    egui::CollapsingHeader::new(RichText::new("Extend Functions").strong().size(13.0))
         .default_open(true)
         .show(ui, |ui| {
-            ui.horizontal_wrapped(|ui| {
+            category_frame(ui, |ui| {
                 for (label, action) in EXTEND_ITEMS {
-                    if ui.selectable_label(current == action, label).clicked() {
+                    if action_chip(ui, current == action, label).clicked() {
                         cfg.profiles[profile_idx].keys[key_idx] = action;
                     }
                 }
             });
         });
+    ui.add_space(4.0);
 
     // 3. Media (10 items)
-    egui::CollapsingHeader::new("Media")
+    egui::CollapsingHeader::new(RichText::new("Media Keys").strong().size(13.0))
         .default_open(true)
         .show(ui, |ui| {
-            ui.horizontal_wrapped(|ui| {
+            category_frame(ui, |ui| {
                 for media in MediaKey::ALL {
                     let action = KeyAction::Media(media);
-                    if ui
-                        .selectable_label(current == action, media_key_label(media))
-                        .clicked()
-                    {
+                    if action_chip(ui, current == action, media_key_label(media)).clicked() {
                         cfg.profiles[profile_idx].keys[key_idx] = action;
                     }
                 }
             });
         });
+    ui.add_space(4.0);
 
     // 4. Macro (Group -> Macro)
-    egui::CollapsingHeader::new("Macro")
+    egui::CollapsingHeader::new(RichText::new("User Macros").strong().size(13.0))
         .default_open(true)
         .show(ui, |ui| {
             if cfg.macros.groups.is_empty() {
@@ -317,14 +428,14 @@ fn render_action_picker(
                     } else {
                         group.name.clone()
                     };
-                    egui::CollapsingHeader::new(group_title)
+                    egui::CollapsingHeader::new(RichText::new(group_title).size(12.5))
                         .id_salt(("base_macro_grp", g_idx))
                         .default_open(true)
                         .show(ui, |ui| {
                             if group.macros.is_empty() {
                                 ui.label(RichText::new("(empty group)").weak());
                             } else {
-                                ui.horizontal_wrapped(|ui| {
+                                category_frame(ui, |ui| {
                                     for (m_idx, mac) in group.macros.iter().enumerate() {
                                         let (Ok(group_u8), Ok(index_u8)) =
                                             (u8::try_from(g_idx), u8::try_from(m_idx))
@@ -340,7 +451,7 @@ fn render_action_picker(
                                         } else {
                                             mac.name.clone()
                                         };
-                                        if ui.selectable_label(current == action, name).clicked() {
+                                        if action_chip(ui, current == action, &name).clicked() {
                                             picked = Some(action);
                                         }
                                     }
@@ -359,10 +470,10 @@ fn render_action_picker(
                     .default_open(false)
                     .show(ui, |ui| {
                         let mut picked: Option<KeyAction> = None;
-                        ui.horizontal_wrapped(|ui| {
+                        category_frame(ui, |ui| {
                             for (idx, mac) in cfg.macros.pubg_macros.iter().enumerate() {
                                 let action = KeyAction::PubgMacro { index: idx as u8 };
-                                if ui.selectable_label(current == action, &mac.name).clicked() {
+                                if action_chip(ui, current == action, &mac.name).clicked() {
                                     picked = Some(action);
                                 }
                             }
@@ -373,31 +484,30 @@ fn render_action_picker(
                     });
             }
         });
+    ui.add_space(4.0);
 
     // 5. Shortcut (8 items)
-    egui::CollapsingHeader::new("Shortcut")
+    egui::CollapsingHeader::new(RichText::new("Shortcuts").strong().size(13.0))
         .default_open(true)
         .show(ui, |ui| {
-            ui.horizontal_wrapped(|ui| {
+            category_frame(ui, |ui| {
                 for shortcut in BuiltinShortcut::ALL {
                     let action = KeyAction::Shortcut(shortcut);
-                    if ui
-                        .selectable_label(current == action, shortcut_label(shortcut))
-                        .clicked()
-                    {
+                    if action_chip(ui, current == action, shortcut_label(shortcut)).clicked() {
                         cfg.profiles[profile_idx].keys[key_idx] = action;
                     }
                 }
             });
         });
+    ui.add_space(4.0);
 
     // 6. Mode (3 items)
-    egui::CollapsingHeader::new("Mode")
+    egui::CollapsingHeader::new(RichText::new("Mode Profiles").strong().size(13.0))
         .default_open(true)
         .show(ui, |ui| {
-            ui.horizontal_wrapped(|ui| {
+            category_frame(ui, |ui| {
                 for (label, action) in MODE_ITEMS {
-                    if ui.selectable_label(current == action, label).clicked() {
+                    if action_chip(ui, current == action, label).clicked() {
                         cfg.profiles[profile_idx].keys[key_idx] = action;
                     }
                 }

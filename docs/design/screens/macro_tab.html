@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode: "class", theme: {extend: {colors: {"inverse-surface": "#e2e2e9", "surface-container-high": "#282a2f", "primary-fixed-dim": "#91ccff", "on-tertiary-fixed-variant": "#633f00", "secondary-fixed-dim": "#80d0fd", "surface-container": "#1e2025", "primary-container": "#78c3ff", "on-error-container": "#ffdad6", "on-surface": "#e2e2e9", "inverse-on-surface": "#2e3036", "on-background": "#e2e2e9", "outline-variant": "#40484f", "surface-container-low": "#1a1c21", "surface-container-highest": "#33353a", "surface-bright": "#37393f", "on-primary-fixed-variant": "#004b73", "primary-fixed": "#cce5ff", "secondary-fixed": "#c4e7ff", primary: "#b7dcff", background: "#111318", "on-primary": "#003351", "surface-variant": "#33353a", "error-container": "#93000a", surface: "#111318", "on-primary-container": "#00507a", "on-surface-variant": "#c0c7d1", "on-secondary": "#00344a", "surface-tint": "#91ccff", "surface-container-lowest": "#0c0e13", "on-error": "#690005", "inverse-primary": "#006496", "tertiary-container": "#f3af4b", "on-tertiary-fixed": "#291800", tertiary: "#ffd093", "tertiary-fixed-dim": "#ffb954", "on-secondary-fixed-variant": "#004c69", "surface-dim": "#111318", "on-tertiary": "#452b00", "on-primary-fixed": "#001e31", error: "#ffb4ab", "secondary-container": "#007098", "tertiary-fixed": "#ffddb4", "on-tertiary-container": "#694300", outline: "#8a919a", "on-secondary-fixed": "#001e2c", secondary: "#80d0fd", "on-secondary-container": "#d0ecff", "border-hairline": "#383e4a", "surface-2": "#282c34", "chassis-bg": "#181a1f", "text-primary": "#ffffff", "record-red": "#ef4444", "keycap-selected-border": "#5fb4ff", "toast-success": "#059669", "text-secondary": "#a5b2c6", "keycap-hover-fill": "#363c48", "keycap-selected-fill": "#264876", "status-online": "#10b981", "surface-1": "#202228", "keycap-base": "#2c3038", "status-offline": "#eab308", "toast-error": "#dc2626", "keycap-disabled": "#202226", "text-muted": "#6b7280", "commit-green": "#10b981"}, borderRadius: {DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem"}, spacing: {"space-xl": "24px", "space-xs": "4px", "margin-desktop": "2rem", "space-md": "12px", "gutter-desktop": "1.5rem", gutter: "10px", "space-sm": "8px", "space-lg": "16px", margin: "16px"}, fontFamily: {"headline-lg": ["JetBrains Mono"], "headline-md": ["Inter"], "body-sm": ["Inter"], "label-sm": ["JetBrains Mono"], "body-lg": ["Hanken Grotesk"], "headline-xl-mobile": ["Hanken Grotesk"], "headline-lg-mobile": ["Hanken Grotesk"], "label-md": ["JetBrains Mono"], "headline-xl": ["Hanken Grotesk"], "body-md": ["Inter"], "code-matrix": ["JetBrains Mono"], "label-lg": ["JetBrains Mono"], "label-keycap": ["Inter"], "code-telemetry": ["JetBrains Mono"], "headline-sm": ["Inter"], "label-keynum": ["Inter"]}, fontSize: {"headline-lg": ["18px", {lineHeight: "24px", fontWeight: "700"}], "headline-md": ["16px", {lineHeight: "22px", fontWeight: "600"}], "body-sm": ["12px", {lineHeight: "16px", fontWeight: "500"}], "label-sm": ["9px", {lineHeight: "12px", letterSpacing: "0.08em", fontWeight: "500"}], "body-lg": ["16px", {lineHeight: "24px", fontWeight: "400"}], "headline-xl-mobile": ["30px", {lineHeight: "36px", letterSpacing: "-0.01em", fontWeight: "700"}], "headline-lg-mobile": ["22px", {lineHeight: "28px", letterSpacing: "-0.005em", fontWeight: "600"}], "label-md": ["11px", {lineHeight: "16px", letterSpacing: "0.06em", fontWeight: "500"}], "headline-xl": ["40px", {lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "700"}], "body-md": ["13px", {lineHeight: "18px", fontWeight: "400"}], "code-matrix": ["12px", {lineHeight: "16px", fontWeight: "400"}], "label-lg": ["13px", {lineHeight: "18px", letterSpacing: "0.04em", fontWeight: "600"}], "label-keycap": ["12.5px", {lineHeight: "16px", fontWeight: "600"}], "code-telemetry": ["11.5px", {lineHeight: "15px", fontWeight: "400"}], "headline-sm": ["14.5px", {lineHeight: "20px", fontWeight: "600"}], "label-keynum": ["11.5px", {lineHeight: "14px", fontWeight: "500"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/95 backdrop-blur-md"><div class="h-20 w-full px-margin-desktop flex flex-col justify-between pt-2 pb-0"><div class="flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md"><img alt="X806 Switch Stem Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrBnivv-Z0iXUjRyMZBl7hqG63d8Zvr3OXkmHvsCKVGz_m5Q6WWkGODz9Uv3HiLzY1ZhwVndcjZLwp4Y8E3z1HMzRyRUaiJ4U2AbD3QMgMXRwFhejBHySb0ZufBT2QrV-NFhTzXcUhpeJiFiUrcdm43zz3Jh7-kF-FVjK3H6fAE-a-rg4YEGXhqrp2xcWCk_FtYkMzDod0HQ0OVAeAx0URChwviUMerGpZOYJlqDTCc_riHwXyU4zsZCCQ"/><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-label-lg text-label-lg uppercase tracking-wider text-primary font-bold">X806 CONFIG // STUDIO</span><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-mono">v2.4.1</span></div><span class="font-label-sm text-label-sm text-outline font-mono">MCU: RP2040 // QMK 0.22.4</span></div></div><div class="flex items-center gap-space-lg"><div class="flex items-center gap-2 px-3 py-1 rounded bg-surface-container text-tertiary font-label-sm text-label-sm font-mono shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary-container opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary-fixed-dim"></span></span><span>Connected: X806 (VID 0x30FA / PID 0x1340) • 1000Hz Polling</span></div><div class="flex items-center gap-space-xs"><a class="p-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center" href="#" title="Calibration Bench"><span class="material-symbols-outlined text-[18px]">tune</span></a><a class="p-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center" href="#" title="Raw HID Diagnostic Console"><span class="material-symbols-outlined text-[18px]">terminal</span></a><a class="p-1.5 rounded bg-surface-container hover:bg-surface-container-high text-secondary hover:text-on-surface transition-colors flex items-center justify-center" href="#" title="Firmware Flash Loader"><span class="material-symbols-outlined text-[18px]">system_update_alt</span></a><a class="p-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center" href="#" title="Technical Documentation"><span class="material-symbols-outlined text-[18px]">menu_book</span></a><a class="p-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center" href="#" title="Device Hardware Settings"><span class="material-symbols-outlined text-[18px]">settings_input_composite</span></a></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div><nav class="flex items-center gap-1 font-label-md text-label-md font-mono tracking-wide" data-active-classes="bg-surface-container-high text-primary-fixed shadow-[inset_0_-2px_0_#00f0ff]"><a class="px-4 py-1.5 rounded-t text-on-surface-variant hover:text-on-surface transition-all" data-path="matrix-layers" href="#">Matrix &amp; Layers</a><a class="px-4 py-1.5 rounded-t text-on-surface-variant hover:text-on-surface transition-all" data-path="macro-sequencer-event-recorder" href="#">Macro Sequencer &amp; Event Recorder</a><a class="px-4 py-1.5 rounded-t text-on-surface-variant hover:text-on-surface transition-all" data-path="rotary-encoders" href="#">Rotary Encoders</a><a class="px-4 py-1.5 rounded-t text-on-surface-variant hover:text-on-surface transition-all" data-path="rgb-underglow-matrix" href="#">RGB Underglow &amp; Matrix</a><a class="px-4 py-1.5 rounded-t text-on-surface-variant hover:text-on-surface transition-all" data-path="oled-hud-screens" href="#">OLED HUD Screens</a><a class="px-4 py-1.5 rounded-t text-on-surface-variant hover:text-on-surface transition-all" data-path="eeprom-profiles" href="#">EEPROM &amp; Profiles</a></nav></div></header><aside class="fixed left-0 top-20 bottom-0 w-64 bg-surface-container-lowest z-40 flex flex-col justify-between"><div class="p-4 flex flex-col gap-4"><div class="flex items-center justify-between text-outline text-label-sm font-label-sm tracking-wider uppercase font-mono"><span>Matrix Topology</span><span class="text-primary-fixed-dim">6x4_PAD</span></div><div class="flex flex-col gap-1 font-mono text-label-md font-label-md"><div class="flex items-center justify-between px-3 py-2 rounded bg-surface-container text-on-surface"><span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>Layer 0 (BASE)</span><span class="text-label-sm text-outline">DEF</span></div><div class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all"><span>Layer 1 (NAV/MEDIA)</span><span class="text-label-sm text-outline">MO(1)</span></div><div class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all"><span>Layer 2 (CAD/NUM)</span><span class="text-label-sm text-outline">TG(2)</span></div><div class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all"><span>Layer 3 (SYS/FLASH)</span><span class="text-label-sm text-outline">DF(3)</span></div></div></div><div class="p-4 bg-surface-container-low flex flex-col gap-2 font-mono"><div class="flex items-center justify-between text-label-sm font-label-sm text-outline"><span>EEPROM USAGE</span><span>312 / 1024 B</span></div><div class="w-full h-1.5 bg-surface-container-highest rounded overflow-hidden"><div class="h-full bg-primary-container w-[30%]"></div></div><div class="text-label-sm font-label-sm text-on-surface-variant flex items-center justify-between pt-1"><span>CHASSIS TEMP</span><span class="text-tertiary-fixed-dim">28.4°C</span></div></div></aside><div class="pl-64"><main class="relative pt-20 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<!-- Macro Sequencer Control Datum Strip -->
+<div class="w-full bg-surface-container-lowest px-gutter-desktop py-space-sm flex flex-wrap items-center justify-between gap-space-md shadow-md">
+<!-- Left: Macro Meta & Slot Indicator -->
+<div class="flex items-center gap-space-md min-w-0">
+<div class="flex items-center gap-space-xs bg-surface-container px-3 py-1.5 rounded">
+<span class="material-symbols-outlined text-primary-container text-[18px]">terminal</span>
+<span class="font-label-md text-label-md text-outline uppercase">ID:</span>
+<span class="font-label-lg text-label-lg font-bold text-primary tracking-wider">MACRO_04: CAD_EXTRUDE_CHAMFER</span>
+<span class="material-symbols-outlined text-outline-variant hover:text-primary cursor-pointer text-[14px]">edit</span>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-low px-2.5 py-1 rounded">
+<span class="font-label-sm text-label-sm text-outline uppercase font-mono">Slot</span>
+<span class="font-label-md text-label-md text-secondary font-mono">04 / 32</span>
+</div>
+<div class="flex items-center gap-1.5 bg-surface-container-high px-2.5 py-1 rounded font-mono text-label-sm font-label-sm text-tertiary-fixed-dim">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span>
+<span>BUFFER READY // IDLE</span>
+</div>
+</div>
+<!-- Center: Physical Capture & Recording Controls -->
+<div class="flex items-center gap-space-xs bg-surface-container-low p-1 rounded">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded bg-error-container hover:bg-error text-on-error-container hover:text-on-error font-label-md text-label-md tracking-wider transition-all duration-75 shadow-sm active:translate-y-px" id="btn-record">
+<span class="h-2.5 w-2.5 rounded-full bg-error shadow-[0_0_8px_#ef4444] animate-ping inline-flex"></span>
+<span class="font-bold">REC EVENT</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-all active:translate-y-px">
+<span class="material-symbols-outlined text-[16px]">stop</span>
+<span>HALT</span>
+</button>
+<div class="h-4 w-px bg-surface-container-highest mx-1"></div>
+<button class="flex items-center gap-1 px-2.5 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md transition-all">
+<span class="material-symbols-outlined text-[15px]">timer</span>
+<span>+50ms</span>
+</button>
+<!-- Modifier Quick Pills -->
+<div class="flex items-center gap-1 bg-surface-container-lowest px-1.5 py-1 rounded">
+<button class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface hover:text-primary font-label-sm text-label-sm transition-colors">LCtrl</button>
+<button class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface hover:text-primary font-label-sm text-label-sm transition-colors">LShift</button>
+<button class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface hover:text-primary font-label-sm text-label-sm transition-colors">LAlt</button>
+<button class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface hover:text-primary font-label-sm text-label-sm transition-colors">LWin</button>
+<button class="px-1.5 py-0.5 rounded bg-surface-container text-secondary font-label-sm text-label-sm hover:bg-surface-container-high">MO(2)</button>
+</div>
+<button class="p-1.5 rounded bg-surface-container hover:bg-error-container text-outline hover:text-error transition-all ml-1" title="Clear Sequence">
+<span class="material-symbols-outlined text-[16px]">delete_sweep</span>
+</button>
+</div>
+<!-- Right: Import / Export / Playback -->
+<div class="flex items-center gap-space-xs">
+<button class="flex items-center gap-1 px-2.5 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]">file_upload</span>
+<span>IMPORT .DAT</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>EXPORT</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded bg-primary-container hover:bg-primary-fixed text-on-primary-container font-label-md text-label-md font-bold shadow-[0_0_12px_rgba(0,240,255,0.35)] transition-all active:translate-y-px">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span>
+<span>TEST PLAYBACK (1X)</span>
+</button>
+</div>
+</div>
+<!-- Main 3-Pane CAD HUD Grid -->
+<div class="grid grid-cols-12 gap-0 w-full min-h-[calc(100vh-10rem)] bg-surface">
+<!-- PANE A: Left Macro Library (3 Cols) -->
+<section class="col-span-12 lg:col-span-3 bg-surface-container-lowest flex flex-col justify-between shadow-inner">
+<div class="flex flex-col">
+<!-- Search bar -->
+<div class="p-3 bg-surface-container-low">
+<div class="flex items-center gap-2 px-2.5 py-1.5 bg-surface-container-lowest rounded">
+<span class="material-symbols-outlined text-outline text-[16px]">search</span>
+<input class="w-full bg-transparent font-code-matrix text-code-matrix text-on-surface placeholder:text-outline-variant focus:outline-none" placeholder="Filter macros or bytecode..." type="text"/>
+<kbd class="px-1 py-0.5 rounded bg-surface-container-high text-outline text-label-sm font-label-sm font-mono">/</kbd>
+</div>
+</div>
+<!-- Groups Accordion / Selector -->
+<div class="px-3 pt-2 pb-1 flex items-center justify-between text-outline text-label-sm font-label-sm uppercase font-mono tracking-wider">
+<span>MACRO BANKS</span>
+<span class="text-primary-fixed-dim">4 ACTIVE BANKS</span>
+</div>
+<!-- Macro Items Group -->
+<div class="flex flex-col gap-1 p-2">
+<!-- Active Macro -->
+<div class="group relative flex flex-col p-2.5 rounded bg-surface-container shadow-md cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-md text-label-md font-bold text-primary flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                M04: CAD Extrude Chamfer
+              </span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container-high text-secondary font-mono">SLOT 04</span>
+</div>
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm font-mono mt-1">
+<span>13 steps • 84 bytes</span>
+<span class="text-tertiary-fixed-dim">[R01:C03] KEY 8</span>
+</div>
+</div>
+<!-- Inactive Macro Item -->
+<div class="group flex flex-col p-2.5 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-md text-label-md font-medium flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+                M01: Quick Git Commit
+              </span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container-lowest text-outline font-mono">SLOT 01</span>
+</div>
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm font-mono">
+<span>12 steps • 52 bytes</span>
+<span>[R00:C01] KEY 2</span>
+</div>
+</div>
+<!-- Inactive Macro Item -->
+<div class="group flex flex-col p-2.5 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-md text-label-md font-medium flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+                M02: Blender Render &amp; Save
+              </span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container-lowest text-outline font-mono">SLOT 02</span>
+</div>
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm font-mono">
+<span>24 steps • 116 bytes</span>
+<span>[R00:C02] KEY 3</span>
+</div>
+</div>
+<!-- Inactive Macro Item -->
+<div class="group flex flex-col p-2.5 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-md text-label-md font-medium flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+                M03: Photoshop Stamp Tool
+              </span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container-lowest text-outline font-mono">SLOT 03</span>
+</div>
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm font-mono">
+<span>8 steps • 36 bytes</span>
+<span>[R01:C00] KEY 5</span>
+</div>
+</div>
+<!-- Inactive Macro Item -->
+<div class="group flex flex-col p-2.5 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-md text-label-md font-medium flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+                M05: VSCode Split Terminal
+              </span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container-lowest text-outline font-mono">SLOT 05</span>
+</div>
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm font-mono">
+<span>6 steps • 28 bytes</span>
+<span>[R02:C02] KEY C</span>
+</div>
+</div>
+<!-- Inactive Macro Item -->
+<div class="group flex flex-col p-2.5 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-md text-label-md font-medium flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+                M06: Ortho Matrix Recalibrate
+              </span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container-lowest text-outline font-mono">SLOT 06</span>
+</div>
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm font-mono">
+<span>14 steps • 68 bytes</span>
+<span>[SYS:DUMP] SHIFT</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Capacity Gauge Footer -->
+<div class="p-3 bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center justify-between font-mono text-label-sm font-label-sm text-outline">
+<span>SLOT ALLOCATION</span>
+<span class="text-on-surface">14 / 32 SLOTS (18 FREE)</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded overflow-hidden flex">
+<div class="h-full bg-primary-container w-[43.75%]"></div>
+<div class="h-full bg-secondary w-[8%]"></div>
+</div>
+<div class="flex justify-between items-center text-label-sm font-label-sm text-outline">
+<span>STATIC EEPROM REGION</span>
+<span class="text-tertiary-fixed-dim">HEALTHY</span>
+</div>
+</div>
+</section>
+<!-- PANE B: Center Timeline & Chronological Keystroke Sequencer (6 Cols) -->
+<section class="col-span-12 lg:col-span-6 bg-surface flex flex-col justify-between relative overflow-hidden">
+<!-- Sequencer Ruler & Quantize Tools -->
+<div class="flex flex-col bg-surface-container-lowest">
+<!-- Latency / Duration Datum Header -->
+<div class="px-4 py-2 flex items-center justify-between bg-surface-container-low">
+<div class="flex items-center gap-3">
+<span class="font-label-sm text-label-sm text-outline uppercase font-mono">TOTAL DURATION:</span>
+<span class="font-label-lg text-label-lg font-mono font-bold text-primary">680 ms</span>
+<span class="font-label-sm text-label-sm text-outline-variant font-mono">| 13 EVENTS</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="px-2 py-1 rounded bg-surface-container text-on-surface hover:text-primary font-label-sm text-label-sm">Quantize 10ms</button>
+<button class="px-2 py-1 rounded bg-surface-container text-on-surface hover:text-primary font-label-sm text-label-sm">Strip KeyUps</button>
+<button class="p-1 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface" title="Settings">
+<span class="material-symbols-outlined text-[15px]">tune</span>
+</button>
+</div>
+</div>
+<!-- Oscilloscope-style Timeline Ruler -->
+<div class="h-7 w-full bg-surface-container-lowest relative flex items-center px-4 overflow-hidden">
+<div class="w-full flex justify-between text-outline-variant font-mono text-[9px] tracking-wider select-none">
+<span>0ms</span>
+<span>100ms</span>
+<span>200ms</span>
+<span>300ms</span>
+<span>400ms</span>
+<span>500ms</span>
+<span>600ms</span>
+<span>700ms</span>
+</div>
+<!-- Micro Tick Marks -->
+<div class="absolute bottom-0 left-0 right-0 h-1.5 flex justify-between px-4 opacity-40">
+<div class="w-px h-full bg-outline"></div>
+<div class="w-px h-1 bg-outline"></div>
+<div class="w-px h-full bg-outline"></div>
+<div class="w-px h-1 bg-outline"></div>
+<div class="w-px h-full bg-outline"></div>
+<div class="w-px h-1 bg-outline"></div>
+<div class="w-px h-full bg-outline"></div>
+<div class="w-px h-1 bg-outline"></div>
+<div class="w-px h-full bg-outline"></div>
+</div>
+</div>
+</div>
+<!-- Step List / Event Canvas (Scrollable) -->
+<div class="flex-1 overflow-y-auto p-4 flex flex-col gap-2 max-h-[calc(100vh-19rem)]">
+<!-- Step 01: KEY_DOWN LCTL -->
+<div class="group flex items-center justify-between p-2 rounded bg-surface-container-low hover:bg-surface-container transition-all">
+<div class="flex items-center gap-3">
+<span class="cursor-grab text-outline-variant group-hover:text-outline font-mono text-label-sm">::</span>
+<span class="font-mono text-label-sm text-outline">01</span>
+<span class="px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-label-sm text-label-sm font-bold">KEY_DOWN</span>
+<span class="font-code-matrix text-code-matrix font-bold text-on-surface">KC_LCTL</span>
+<span class="font-body-sm text-body-sm text-outline">(Left Control)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-outline font-mono">Δ 0 ms</span>
+<span class="material-symbols-outlined text-outline-variant hover:text-error cursor-pointer text-[16px]">close</span>
+</div>
+</div>
+<!-- Step 02: DELAY 45ms -->
+<div class="group flex items-center justify-between px-3 py-1.5 rounded bg-surface-container-lowest hover:bg-surface-container-low transition-all">
+<div class="flex items-center gap-3">
+<span class="cursor-grab text-outline-variant group-hover:text-outline font-mono text-label-sm">::</span>
+<span class="font-mono text-label-sm text-outline">02</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-secondary font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">schedule</span> DELAY
+            </span>
+<span class="font-mono text-label-md text-label-md text-secondary">+ 45 ms</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="w-5 h-5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center font-mono text-xs">-</button>
+<button class="w-5 h-5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center font-mono text-xs">+</button>
+<span class="material-symbols-outlined text-outline-variant hover:text-error cursor-pointer text-[16px] ml-1">close</span>
+</div>
+</div>
+<!-- Step 03: KEY_DOWN LSFT -->
+<div class="group flex items-center justify-between p-2 rounded bg-surface-container-low hover:bg-surface-container transition-all">
+<div class="flex items-center gap-3">
+<span class="cursor-grab text-outline-variant group-hover:text-outline font-mono text-label-sm">::</span>
+<span class="font-mono text-label-sm text-outline">03</span>
+<span class="px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-label-sm text-label-sm font-bold">KEY_DOWN</span>
+<span class="font-code-matrix text-code-matrix font-bold text-on-surface">KC_LSFT</span>
+<span class="font-body-sm text-body-sm text-outline">(Left Shift)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-outline font-mono">Δ +12 ms</span>
+<span class="material-symbols-outlined text-outline-variant hover:text-error cursor-pointer text-[16px]">close</span>
+</div>
+</div>
+<!-- Step 04: DELAY 30ms -->
+<div class="group flex items-center justify-between px-3 py-1.5 rounded bg-surface-container-lowest hover:bg-surface-container-low transition-all">
+<div class="flex items-center gap-3">
+<span class="cursor-grab text-outline-variant group-hover:text-outline font-mono text-label-sm">::</span>
+<span class="font-mono text-label-sm text-outline">04</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-secondary font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">schedule</span> DELAY
+            </span>
+<span class="font-mono text-label-md text-label-md text-secondary">+ 30 ms</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="w-5 h-5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center font-mono text-xs">-</button>
+<button class="w-5 h-5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center font-mono text-xs">+</button>
+<span class="material-symbols-outlined text-outline-variant hover:text-error cursor-pointer text-[16px] ml-1">close</span>
+</div>
+</div>
+<!-- Step 05: KEY_DOWN KC_E -->
+<div class="group flex items-center justify-between p-2 rounded bg-surface-container-low hover:bg-surface-container transition-all">
+<div class="flex items-center gap-3">
+<span class="cursor-grab text-outline-variant group-hover:text-outline font-mono text-label-sm">::</span>
+<span class="font-mono text-label-sm text-outline">05</span>
+<span class="px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-label-sm text-label-sm font-bold">KEY_DOWN</span>
+<span class="font-code-matrix text-code-matrix font-bold text-on-surface">KC_E</span>
+<span class="font-body-sm text-body-sm text-outline">(Extrude Hotkey)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-outline font-mono">Δ +15 ms</span>
+<span class="material-symbols-outlined text-outline-variant hover:text-error cursor-pointer text-[16px]">close</span>
+</div>
+</div>
+<!-- Step 06: DELAY 85ms (Hold Threshold) -->
+<div class="group flex items-center justify-between px-3 py-1.5 rounded bg-surface-container-lowest hover:bg-surface-container-low transition-all">
+<div class="flex items-center gap-3">
+<span class="cursor-grab text-outline-variant group-hover:text-outline font-mono text-label-sm">::</span>
+<span class="font-mono text-label-sm text-outline">06</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-secondary font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">schedule</span> DELAY
+            </span>
+<span class="font-mono text-label-md text-label-md text-secondary">+ 85 ms</span>
+<span class="font-label-sm text-label-sm text-outline-variant">(Hold Trigger)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="w-5 h-5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center font-mono text-xs">-</button>
+<button class="w-5 h-5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center font-mono text-xs">+</button>
+<span class="material-symbols-outlined text-outline-variant hover:text-error cursor-pointer text-[16px] ml-1">close</span>
+</div>
+</div>
+<!-- Step 07: KEY_UP KC_E -->
+<div class="group flex items-center justify-between p-2 rounded bg-surface-container-low hover:bg-surface-container transition-all">
+<div class="flex items-center gap-3">
+<span class="cursor-grab text-outline-variant group-hover:text-outline font-mono text-label-sm">::</span>
+<span class="font-mono text-label-sm text-outline">07</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm font-bold">KEY_UP</span>
+<span class="font-code-matrix text-code-matrix text-on-surface">KC_E</span>
+<span class="font-body-sm text-body-sm text-outline">(Release)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-outline font-mono">Δ 0 ms</span>
+<span class="material-symbols-outlined text-outline-variant hover:text-error cursor-pointer text-[16px]">close</span>
+</div>
+</div>
+<!-- Step 08-09 Release Group -->
+<div class="group flex items-center justify-between p-2 rounded bg-surface-container-low hover:bg-surface-container transition-all">
+<div class="flex items-center gap-3">
+<span class="cursor-grab text-outline-variant group-hover:text-outline font-mono text-label-sm">::</span>
+<span class="font-mono text-label-sm text-outline">08</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm font-bold">KEY_UP</span>
+<span class="font-code-matrix text-code-matrix text-on-surface">KC_LSFT, KC_LCTL</span>
+<span class="font-body-sm text-body-sm text-outline">(Simultaneous Release)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-outline font-mono">Δ +2 ms</span>
+<span class="material-symbols-outlined text-outline-variant hover:text-error cursor-pointer text-[16px]">close</span>
+</div>
+</div>
+<!-- Step 10: DELAY 120ms -->
+<div class="group flex items-center justify-between px-3 py-1.5 rounded bg-surface-container-lowest hover:bg-surface-container-low transition-all">
+<div class="flex items-center gap-3">
+<span class="cursor-grab text-outline-variant group-hover:text-outline font-mono text-label-sm">::</span>
+<span class="font-mono text-label-sm text-outline">09</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-secondary font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">schedule</span> DELAY
+            </span>
+<span class="font-mono text-label-md text-label-md text-secondary">+ 120 ms</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="w-5 h-5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center font-mono text-xs">-</button>
+<button class="w-5 h-5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center font-mono text-xs">+</button>
+<span class="material-symbols-outlined text-outline-variant hover:text-error cursor-pointer text-[16px] ml-1">close</span>
+</div>
+</div>
+<!-- Step 11: MOUSE_CLICK -->
+<div class="group flex items-center justify-between p-2 rounded bg-surface-container-low hover:bg-surface-container transition-all">
+<div class="flex items-center gap-3">
+<span class="cursor-grab text-outline-variant group-hover:text-outline font-mono text-label-sm">::</span>
+<span class="font-mono text-label-sm text-outline">10</span>
+<span class="px-2 py-0.5 rounded bg-tertiary-container text-on-tertiary-container font-label-sm text-label-sm font-bold">MOUSE_CLICK</span>
+<span class="font-code-matrix text-code-matrix font-bold text-tertiary">BTN1 (LMB)</span>
+<span class="font-mono text-label-sm text-label-sm text-outline">[X: 1920, Y: 1080]</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-outline font-mono">Δ 0 ms</span>
+<span class="material-symbols-outlined text-outline-variant hover:text-error cursor-pointer text-[16px]">close</span>
+</div>
+</div>
+<!-- Step 12: STRING EXPANSION -->
+<div class="group flex items-center justify-between p-2 rounded bg-surface-container-low hover:bg-surface-container transition-all">
+<div class="flex items-center gap-3">
+<span class="cursor-grab text-outline-variant group-hover:text-outline font-mono text-label-sm">::</span>
+<span class="font-mono text-label-sm text-outline">11</span>
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">TEXT_STRING</span>
+<span class="font-code-matrix text-code-matrix text-secondary font-mono">"EXTRUDE_10MM"</span>
+<span class="font-body-sm text-body-sm text-outline">(12 keystrokes auto-timed)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-outline font-mono">Δ +60 ms</span>
+<span class="material-symbols-outlined text-outline-variant hover:text-error cursor-pointer text-[16px]">close</span>
+</div>
+</div>
+</div>
+<!-- Quick-Insert Floating Action Dock -->
+<div class="p-3 bg-surface-container-lowest">
+<div class="flex items-center justify-between gap-2 bg-surface-container-low p-1.5 rounded">
+<span class="font-mono text-label-sm text-label-sm text-outline pl-2 uppercase">INSERT STEP:</span>
+<div class="flex items-center gap-1.5 flex-wrap">
+<button class="px-2 py-1 rounded bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">keyboard</span> Key Press
+            </button>
+<button class="px-2 py-1 rounded bg-surface-container hover:bg-surface-container-high text-tertiary font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">mouse</span> Mouse Action
+            </button>
+<button class="px-2 py-1 rounded bg-surface-container hover:bg-surface-container-high text-secondary font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">hourglass_empty</span> Delay (+50ms)
+            </button>
+<button class="px-2 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">text_fields</span> String Injection
+            </button>
+<button class="px-2 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">vibration</span> Haptic / Beeper
+            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- PANE C: Execution Parameters & Hardware Bytecode (3 Cols) -->
+<section class="col-span-12 lg:col-span-3 bg-surface-container-lowest flex flex-col justify-between p-4 shadow-inner">
+<div class="flex flex-col gap-4">
+<!-- Module Header -->
+<div class="flex items-center justify-between pb-1">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-on-surface uppercase tracking-wider">EXECUTION PARAMETERS</span>
+<span class="font-label-sm text-label-sm text-outline font-mono">QMK ENGINE // BUFFER_04</span>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px]">memory</span>
+</div>
+<!-- Playback Trigger & Repeat Modes -->
+<div class="flex flex-col gap-2">
+<label class="font-label-sm text-label-sm text-outline uppercase font-mono">TRIGGER REPEAT BEHAVIOR</label>
+<div class="grid grid-cols-2 gap-1.5 font-label-sm text-label-sm font-mono">
+<div class="p-2 rounded bg-surface-container text-primary font-bold shadow-sm flex items-center justify-between cursor-pointer">
+<span>PLAY ONCE</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+</div>
+<div class="p-2 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant cursor-pointer flex items-center justify-between">
+<span>REPEAT N</span>
+<span class="text-outline">3X</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant cursor-pointer flex items-center justify-between">
+<span>WHILE HELD</span>
+<span class="text-outline">LOOP</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant cursor-pointer flex items-center justify-between">
+<span>TOGGLE LOOP</span>
+<span class="text-outline">LATCH</span>
+</div>
+</div>
+</div>
+<!-- Delay Calibration & Jitter -->
+<div class="flex flex-col gap-3 p-3 bg-surface-container-low rounded">
+<div class="flex items-center justify-between font-mono text-label-sm font-label-sm">
+<span class="text-outline">TIMING MULTIPLIER</span>
+<span class="text-primary font-bold">1.0x (NATIVE)</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded overflow-hidden relative cursor-pointer">
+<div class="h-full bg-primary-container w-1/2"></div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface font-mono">HUMANIZER JITTER</span>
+<span class="text-outline text-label-sm font-label-sm font-mono">± 8ms Anti-detection variance</span>
+</div>
+<div class="w-8 h-4 rounded-full bg-primary-container p-0.5 cursor-pointer flex items-center justify-end">
+<div class="w-3 h-3 rounded-full bg-on-primary-container shadow-sm"></div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-sm text-label-sm text-outline font-mono">DEBOUNCE FILTER</span>
+<span class="font-label-sm text-label-sm text-on-surface font-mono px-1.5 py-0.5 rounded bg-surface-container">5ms EAGER SYMMETRIC</span>
+</div>
+</div>
+<!-- Hardware EEPROM Bytecode Compiler Dump -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase font-mono">EEPROM BYTECODE (HEX/ASM)</span>
+<span class="text-tertiary-fixed-dim font-mono text-label-sm font-label-sm">0x9F4C2A11</span>
+</div>
+<div class="bg-surface-container-lowest p-2.5 rounded font-mono text-label-sm font-label-sm text-on-surface-variant flex flex-col gap-1 leading-tight select-all">
+<div class="text-primary-fixed-dim">0x04 0x01 0xE0 <span class="text-outline">// [DOWN LCTL]</span></div>
+<div class="text-secondary">0x02 0x2D      <span class="text-outline">// [DLY 45ms]</span></div>
+<div class="text-primary-fixed-dim">0x04 0x01 0xE1 <span class="text-outline">// [DOWN LSFT]</span></div>
+<div class="text-primary-fixed-dim">0x04 0x01 0x08 <span class="text-outline">// [DOWN 'E']</span></div>
+<div class="text-secondary">0x02 0x55      <span class="text-outline">// [DLY 85ms]</span></div>
+<div class="text-on-surface">0x05 0x01 0x08 <span class="text-outline">// [UP 'E']</span></div>
+<div class="text-error">0x00 0xFF      <span class="text-outline">// [TERM_RETURN]</span></div>
+</div>
+</div>
+<!-- Bytecode Allocation Health -->
+<div class="flex flex-col gap-1.5 bg-surface-container-low p-2.5 rounded">
+<div class="flex items-center justify-between font-mono text-label-sm font-label-sm">
+<span class="text-outline">SLOT FOOTPRINT</span>
+<span class="text-on-surface">84 / 1024 Bytes (8.2%)</span>
+</div>
+<div class="w-full h-1 bg-surface-container-highest rounded overflow-hidden">
+<div class="h-full bg-primary-container w-[8.2%]"></div>
+</div>
+<span class="text-label-sm font-label-sm font-mono text-tertiary-fixed-dim flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[13px]">verified</span> CRC32 Validated for RP2040 Flash
+          </span>
+</div>
+</div>
+<!-- Quick Action: Clear Slot -->
+<div class="pt-3">
+<button class="w-full py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-error font-mono text-label-sm font-label-sm transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[14px]">history</span> RESET TO DEFAULT M04 CONFIG
+        </button>
+</div>
+</section>
+</div>
+<!-- Bottom Hardware Synchronizer & Persistence Rim -->
+<footer class="w-full bg-surface-container-lowest px-gutter-desktop py-space-sm flex flex-wrap items-center justify-between gap-space-md shadow-2xl">
+<!-- Left: Telemetry & Engine status -->
+<div class="flex items-center gap-space-md font-mono text-label-sm font-label-sm">
+<div class="flex items-center gap-2 text-on-surface">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim shadow-[0_0_6px_#4edea3]"></span>
+<span>X806 MCU: 1000Hz (VID 0x30FA / PID 0x1340)</span>
+</div>
+<span class="text-outline">|</span>
+<span class="text-outline">CORE: QMK_DYNAMIC_MACRO_V2.1 ACTIVE</span>
+</div>
+<!-- Center: Dirty Sync Status -->
+<div class="flex items-center gap-2 font-mono text-label-sm font-label-sm">
+<span class="text-secondary flex items-center gap-1.5 font-bold">
+<span class="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></span>
+        1 PENDING MACRO CHANGE UNCOMMITTED
+      </span>
+<span class="text-outline">|</span>
+<span class="text-outline">TOTAL EEPROM: 342 / 1024 BYTES (33.4%)</span>
+</div>
+<!-- Right: Commit & Revert Triggers -->
+<div class="flex items-center gap-space-sm">
+<button class="px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md font-mono transition-all">
+        SIMULATE DRY-RUN
+      </button>
+<button class="px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-secondary hover:text-secondary-fixed font-label-md text-label-md font-mono transition-all">
+        REVERT FROM DEVICE
+      </button>
+<button class="flex items-center gap-2 px-4 py-1.5 rounded bg-primary-container hover:bg-primary-fixed text-on-primary-container font-label-md text-label-md font-bold tracking-wider shadow-[0_0_16px_rgba(0,240,255,0.45)] transition-all active:translate-y-px" id="btn-flash-eeprom">
+<span class="material-symbols-outlined text-[16px]">save</span>
+<span>WRITE MACRO TO EEPROM</span>
+</button>
+</div>
+</footer>
+</div>
+<script>
+  // Simple interaction bindings for tactile HUD feel
+  const recordBtn = document.getElementById('btn-record');
+  if (recordBtn) {
+    let recording = false;
+    recordBtn.addEventListener('click', () => {
+      recording = !recording;
+      if (recording) {
+        recordBtn.classList.remove('bg-error-container', 'text-on-error-container');
+        recordBtn.classList.add('bg-error', 'text-on-error');
+        recordBtn.querySelector('span:last-child').textContent = 'RECORDING...';
+      } else {
+        recordBtn.classList.add('bg-error-container', 'text-on-error-container');
+        recordBtn.classList.remove('bg-error', 'text-on-error');
+        recordBtn.querySelector('span:last-child').textContent = 'REC EVENT';
+      }
+    });
+  }
+
+  const flashBtn = document.getElementById('btn-flash-eeprom');
+  if (flashBtn) {
+    flashBtn.addEventListener('click', () => {
+      const origText = flashBtn.innerHTML;
+      flashBtn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span> FLASHING...';
+      setTimeout(() => {
+        flashBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check_circle</span> EEPROM SYNCED';
+        setTimeout(() => {
+          flashBtn.innerHTML = origText;
+        }, 1500);
+      }, 700);
+    });
+  }
+</script></main></div></body></html>
