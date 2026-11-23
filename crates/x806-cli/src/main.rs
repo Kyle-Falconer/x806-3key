@@ -29,6 +29,14 @@ struct Cli {
 enum Commands {
     /// Probe the attached X806 keypad and print firmware status (read-only)
     Status,
+    /// Read the whole EEPROM into a binary file (read-only)
+    Dump {
+        /// Output file
+        out: PathBuf,
+        /// Number of bytes to read from address 0
+        #[arg(long, default_value_t = 0x1000)]
+        len: u16,
+    },
     /// Compile and flash a TOML or config.ini configuration to the keypad
     Apply(ApplyArgs),
     /// Restore factory-default keypad configuration
@@ -121,6 +129,7 @@ fn main() -> ExitCode {
 fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     match cli.command {
         Commands::Status => cmd_status(),
+        Commands::Dump { out, len } => cmd_dump(&out, len),
         Commands::Apply(args) => cmd_apply(args),
         Commands::Reset(args) => cmd_reset(args),
         Commands::Import(args) => cmd_import(args),
@@ -133,6 +142,22 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
     }
+}
+
+fn cmd_dump(out: &Path, len: u16) -> Result<(), Box<dyn std::error::Error>> {
+    let (transport, manufacturer, product) = HidApiTransport::open_first()?;
+    let mut dev = X806Device::with_strings(transport, manufacturer, product);
+    let mut bytes = Vec::with_capacity(usize::from(len));
+    for addr in 0..len {
+        bytes.push(dev.read_eeprom_byte(addr)?);
+        if addr % 256 == 255 {
+            eprint!(".");
+        }
+    }
+    eprintln!();
+    fs::write(out, &bytes)?;
+    println!("Wrote {} bytes to {}", bytes.len(), out.display());
+    Ok(())
 }
 
 fn cmd_status() -> Result<(), Box<dyn std::error::Error>> {

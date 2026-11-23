@@ -14,4 +14,4 @@ toml = { workspace = true }
 hidapi = { version = "2.6", default-features = false, features = ["linux-native-basic-udev"] }
 
 [target.'cfg(not(target_os = "linux"))'.dependencies]
-hidapi = { version = "2" }
+hidapi = { version = "2", features = ["macos-shared-device"] }
